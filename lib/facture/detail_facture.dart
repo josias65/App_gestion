@@ -5,38 +5,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
-// The main entry point of the application.
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Invoice App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E88E5),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          titleTextStyle: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-      home: const DetailFactureScreen(factureId: 'FAC001-2025'),
-    );
-  }
-}
-
 // DetailFactureScreen to display and manage an invoice.
 class DetailFactureScreen extends StatefulWidget {
   final String factureId;
@@ -91,7 +59,7 @@ class _DetailFactureScreenState extends State<DetailFactureScreen>
     return {
       'id': widget.factureId,
       'numero': 'FAC001-2025',
-      'client': 'Jean Dupont',
+      'client': 'Jean konami',
       'date': '2025-07-21',
       'statut': 'Payée',
       'montant': 1500.00,
@@ -115,7 +83,12 @@ class _DetailFactureScreenState extends State<DetailFactureScreen>
     final societe = facture['societe'] as Map<String, dynamic>;
     final articles = facture['articles'] as List<Map<String, dynamic>>;
 
-    final headers = ['Article', 'Quantité', 'Prix unitaire (€)', 'Total (€)'];
+    final headers = [
+      'Article',
+      'Quantité',
+      'Prix unitaire (frcfa)',
+      'Total (frcfa)',
+    ];
     final data = articles.map((item) {
       final totalArticle = (item['quantite'] * item['prixUnitaire']);
       return [
@@ -213,7 +186,7 @@ class _DetailFactureScreenState extends State<DetailFactureScreen>
                 ),
                 pw.SizedBox(width: 10),
                 pw.Text(
-                  "${(facture['montant'] as double).toStringAsFixed(2)} €",
+                  "${(facture['montant'] as double).toStringAsFixed(2)} frcfa",
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 ),
               ],
@@ -803,7 +776,7 @@ class _DetailFactureScreenState extends State<DetailFactureScreen>
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '$total €',
+                        '$total fr',
                         textAlign: TextAlign.end,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,

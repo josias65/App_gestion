@@ -273,7 +273,7 @@ class _SoumissionScreenState extends State<SoumissionScreen> {
             TextFormField(
               controller: _prixController,
               decoration: const InputDecoration(
-                labelText: 'Prix proposé (€)*',
+                labelText: 'Prix proposé (frcfa)*',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.euro),
               ),

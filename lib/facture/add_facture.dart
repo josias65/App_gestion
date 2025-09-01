@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class AddFACTUREScreen extends StatefulWidget {
-  const AddFACTUREScreen({super.key});
+class AddFactureScreen extends StatefulWidget {
+  const AddFactureScreen({super.key});
 
   @override
-  State<AddFACTUREScreen> createState() => _AddFACTUREScreenState();
+  State<AddFactureScreen> createState() => _AddFactureScreenState();
 }
 
-class _AddFACTUREScreenState extends State<AddFACTUREScreen> {
+class _AddFactureScreenState extends State<AddFactureScreen> {
   final _formKey = GlobalKey<FormState>();
   final _clientController = TextEditingController();
   final _invoiceNumberController = TextEditingController(

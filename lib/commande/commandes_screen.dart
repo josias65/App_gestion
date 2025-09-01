@@ -583,8 +583,3 @@ class _CommandesScreenState extends State<CommandesScreen>
     );
   }
 }
-
-class AppRoutes {
-  static const String addCommande = '/addCommande';
-  static const String detailCommande = '/detailCommande';
-}

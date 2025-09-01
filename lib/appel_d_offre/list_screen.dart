@@ -20,7 +20,6 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
   String _selectedFilter = 'Tous';
   bool _showFavorites = false;
 
-  // ignore: unused_field
   final List<String> _filters = [
     'Tous',
     'Ouvert',
@@ -29,7 +28,6 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
     'Terminé',
   ];
 
-  // Liste des appels d'offres avec des données complètes
   final List<Map<String, dynamic>> _appelsOffres = [
     {
       'id': 1,
@@ -101,7 +99,6 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
       CurvedAnimation(parent: _headerController, curve: Curves.easeOutBack),
     );
 
-    // Démarrer les animations
     _headerController.forward();
     Future.delayed(const Duration(milliseconds: 600), () {
       _fabController.forward();
@@ -243,7 +240,7 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
               return Transform.translate(
                 offset: Offset(0, -50 * (1 - _headerAnimation.value)),
                 child: Opacity(
-                  opacity: _headerAnimation.value,
+                  opacity: _headerAnimation.value.clamp(0.0, 1.0),
                   child: AppBar(
                     systemOverlayStyle: SystemUiOverlayStyle.light,
                     toolbarHeight: 80,
@@ -331,7 +328,7 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
                           selectedColor: const Color(
                             0xFF0F0465,
                           ).withOpacity(0.2),
-                          checkmarkColor: const Color(0xFF0F0465),
+                          checkmarkColor: Colors.blue,
                         ),
                       ],
                     ),
@@ -619,8 +616,8 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
         });
       },
       backgroundColor: Colors.white,
-      selectedColor: const Color(0xFF0F0465).withOpacity(0.2),
-      checkmarkColor: const Color(0xFF0F0465),
+      selectedColor: Colors.blue.withOpacity(0.2),
+      checkmarkColor: Colors.blue,
     );
   }
 }

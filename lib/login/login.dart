@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'dashboard_screen.dart';
-import 'test_api_screen.dart';
-import 'debug_login_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -269,54 +267,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                     ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Boutons de test
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const TestApiScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.bug_report,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                        label: const Text(
-                          'Tester l\'API',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const DebugLoginScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.settings,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                        label: const Text(
-                          'Debug Connexion',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),

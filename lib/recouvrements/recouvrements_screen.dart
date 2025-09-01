@@ -297,7 +297,7 @@ class _AddRecouvrementScreenState extends State<AddRecouvrementScreen> {
                       'client': _clientController.text,
                       'date':
                           '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                      'montant': '${_montantController.text} €',
+                      'montant': '${_montantController.text} frcfa',
                       'statut': _selectedStatus,
                       'commentaire': _commentaireController.text,
                     });
@@ -333,23 +333,23 @@ class RecouvrementsScreen extends StatefulWidget {
 class _RecouvrementsScreenState extends State<RecouvrementsScreen> {
   List<Map<String, String>> _recouvrements = [
     {
-      'client': 'Jean Dupont',
+      'client': 'Jean KPATCHA',
       'date': '15/07/2025',
-      'montant': '500 €',
+      'montant': '500 FRCFA',
       'statut': 'En cours',
       'commentaire': 'Paiement partiel reçu',
     },
     {
-      'client': 'Marie Curie',
+      'client': 'MariLyn KEKOu',
       'date': '18/07/2025',
-      'montant': '1500 €',
+      'montant': '1500 FRCFA',
       'statut': 'Recouvré',
       'commentaire': 'Paiement intégral',
     },
     {
       'client': 'Paul Martin',
       'date': '20/07/2025',
-      'montant': '700 €',
+      'montant': '700 frcfa',
       'statut': 'En attente',
       'commentaire': 'Relance prévue',
     },

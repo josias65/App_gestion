@@ -66,9 +66,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
               onSurface: Colors.black,
             ),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF3F1FBF),
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.blue),
             ),
           ),
           child: child!,
@@ -95,12 +93,12 @@ class _AddClientScreenState extends State<AddClientScreen> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: const Color(0xFF3F1FBF),
+        backgroundColor: Colors.blue,
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF3F1FBF), Color(0xFF6A4EFF)],
+              colors: [Colors.blue, Color(0xFF6A4EFF)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -125,7 +123,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF3F1FBF),
+                  color: Colors.blue,
                 ),
               ),
               const SizedBox(height: 16),
@@ -209,7 +207,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF3F1FBF),
+                  color: Colors.blue,
                 ),
               ),
               const SizedBox(height: 16),
@@ -266,7 +264,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF3F1FBF),
+                  color: Colors.blue,
                 ),
               ),
               const SizedBox(height: 16),
@@ -359,7 +357,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF3F1FBF),
+                  color: Colors.blue,
                 ),
               ),
               const SizedBox(height: 8),
@@ -382,7 +380,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                 child: ElevatedButton(
                   onPressed: _saveClient,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3F1FBF),
+                    backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

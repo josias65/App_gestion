@@ -19,12 +19,12 @@ class ClientDetailScreen extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
           ),
           centerTitle: true,
-          backgroundColor: const Color(0xFF3F1FBF),
+          backgroundColor: Colors.blue,
           elevation: 0,
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF3F1FBF), Color(0xFF6A4EFF)],
+                colors: [Colors.blue, Colors.blueAccent],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -152,7 +152,7 @@ class ClientDetailScreen extends StatelessWidget {
             title: 'Chiffre d\'affaires total',
             value: NumberFormat.currency(
               locale: 'fr_FR',
-              symbol: '€',
+              symbol: 'fr',
             ).format(totalRevenue),
             icon: Icons.euro,
             color: Colors.green.shade100,
@@ -172,7 +172,7 @@ class ClientDetailScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF3F1FBF),
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 12),
@@ -189,7 +189,7 @@ class ClientDetailScreen extends StatelessWidget {
       {
         'id': '#INT-2023-078',
         'date': DateTime(2023, 6, 10),
-        'technicien': 'Jean Dupont',
+        'technicien': 'AMA KALITO',
         'type': 'Maintenance préventive',
         'statut': 'Terminé',
         'description': 'Vérification et nettoyage des serveurs',
@@ -197,7 +197,7 @@ class ClientDetailScreen extends StatelessWidget {
       {
         'id': '#INT-2023-065',
         'date': DateTime(2023, 4, 5),
-        'technicien': 'Marie Leroy',
+        'technicien': 'komi jojo',
         'type': 'Dépannage urgent',
         'statut': 'Terminé',
         'description': 'Problème de connexion réseau',
@@ -205,21 +205,20 @@ class ClientDetailScreen extends StatelessWidget {
       {
         'id': '#INT-2023-089',
         'date': DateTime(2023, 7, 2),
-        'technicien': 'Pierre Martin',
+        'technicien': 'KOKOU Martin',
         'type': 'Mise à jour logicielle',
         'statut': 'Planifié',
         'description': 'Mise à jour des systèmes de sécurité',
       },
     ];
 
-    final nextIntervention = interventions
-        .firstWhere(
-          (inter) => inter['statut'] == 'Planifié',
-          orElse: () => {
-            'date': DateTime.now(),
-            'description': 'Pas d\'intervention planifiée',
-          },
-        );
+    final nextIntervention = interventions.firstWhere(
+      (inter) => inter['statut'] == 'Planifié',
+      orElse: () => {
+        'date': DateTime.now(),
+        'description': 'Pas d\'intervention planifiée',
+      },
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -247,12 +246,11 @@ class ClientDetailScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF3F1FBF),
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 12),
-          ...interventions
-              .map((inter) => _buildInterventionCard(inter)),
+          ...interventions.map((inter) => _buildInterventionCard(inter)),
         ],
       ),
     );
@@ -305,7 +303,7 @@ class ClientDetailScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF3F1FBF),
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 12),
@@ -320,8 +318,8 @@ class ClientDetailScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              side: const BorderSide(color: Color(0xFF3F1FBF)),
-              foregroundColor: const Color(0xFF3F1FBF),
+              side: const BorderSide(color: Colors.blue),
+              foregroundColor: Colors.blue,
             ),
           ),
         ],
@@ -433,12 +431,12 @@ class ClientDetailScreen extends StatelessWidget {
               Text(
                 NumberFormat.currency(
                   locale: 'fr_FR',
-                  symbol: '€',
+                  symbol: 'frcfa',
                 ).format(vente['montant']),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF3F1FBF),
+                  color: Colors.blue,
                 ),
               ),
               const SizedBox(height: 8),
@@ -526,7 +524,7 @@ class ClientDetailScreen extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF3F1FBF),
+                  color: Colors.blue,
                 ),
               ),
               const SizedBox(height: 8),
@@ -718,7 +716,7 @@ class ClientDetailScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3F1FBF),
+                        backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),

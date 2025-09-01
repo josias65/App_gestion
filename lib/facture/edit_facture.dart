@@ -1,42 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-// The main entry point of the Flutter application.
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Invoice App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        appBarTheme: const AppBarTheme(
-          color: Color(0xFF1E88E5),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.grey[100],
-        ),
-      ),
-      // This is the starting screen for the app
-      home: const EditFactureScreen(factureId: 'FAC001-2025'),
-    );
-  }
-}
-
 // A screen to edit an existing invoice.
 class EditFactureScreen extends StatefulWidget {
   final String factureId;
@@ -72,7 +36,7 @@ class _EditFactureScreenState extends State<EditFactureScreen> {
     // In a real app, you would make an API call here using widget.factureId
     final mockFacture = {
       'numero': 'FAC001-2025',
-      'client': 'Jean Dupont',
+      'client': 'jean konami',
       'date': '2025-07-21',
       'statut': 'Payée',
       'montant': '1500.00',
@@ -117,9 +81,7 @@ class _EditFactureScreenState extends State<EditFactureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Modifier une facture'),
-      ),
+      appBar: AppBar(title: const Text('Modifier une facture')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -190,9 +152,11 @@ class _EditFactureScreenState extends State<EditFactureScreen> {
                         controller: _montantController,
                         decoration: const InputDecoration(
                           labelText: 'Montant',
-                          prefixText: '€ ',
+                          prefixText: 'frcfa ',
                         ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Veuillez entrer un montant';
@@ -216,7 +180,10 @@ class _EditFactureScreenState extends State<EditFactureScreen> {
                   backgroundColor: const Color(0xFF1E88E5),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

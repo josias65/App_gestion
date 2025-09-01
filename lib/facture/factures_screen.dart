@@ -26,7 +26,12 @@ class _FactureScreenState extends State<FactureScreen>
   late AnimationController _fadeController;
   late AnimationController _slideController;
 
-  final List<String> filterOptions = ['Tous', 'Payées', 'Impayées', 'En attente'];
+  final List<String> filterOptions = [
+    'Tous',
+    'Payées',
+    'Impayées',
+    'En attente',
+  ];
 
   @override
   void initState() {
@@ -39,10 +44,10 @@ class _FactureScreenState extends State<FactureScreen>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _loadFactures();
     _scrollController.addListener(_scrollListener);
-    
+
     _fadeController.forward();
     _slideController.forward();
   }
@@ -85,9 +90,15 @@ class _FactureScreenState extends State<FactureScreen>
 
     if (searchQuery.isNotEmpty) {
       newFactures = newFactures
-          .where((facture) =>
-              facture['client'].toString().toLowerCase().contains(searchQuery.toLowerCase()) ||
-              facture['numero'].toString().toLowerCase().contains(searchQuery.toLowerCase()))
+          .where(
+            (facture) =>
+                facture['client'].toString().toLowerCase().contains(
+                  searchQuery.toLowerCase(),
+                ) ||
+                facture['numero'].toString().toLowerCase().contains(
+                  searchQuery.toLowerCase(),
+                ),
+          )
           .toList();
     }
 
@@ -205,7 +216,10 @@ class _FactureScreenState extends State<FactureScreen>
                     onChanged: _onSearch,
                     decoration: InputDecoration(
                       hintText: 'Rechercher une facture...',
-                      prefixIcon: const Icon(Icons.search, color: Color(0xFF1976D2)),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF1976D2),
+                      ),
                       suffixIcon: searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, color: Colors.grey),
@@ -240,7 +254,9 @@ class _FactureScreenState extends State<FactureScreen>
                           label: Text(
                             filter,
                             style: TextStyle(
-                              color: isSelected ? Colors.white : const Color(0xFF1976D2),
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF1976D2),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -264,13 +280,13 @@ class _FactureScreenState extends State<FactureScreen>
       body: FadeTransition(
         opacity: _fadeController,
         child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 0.3),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: _slideController,
-            curve: Curves.easeOutCubic,
-          )),
+          position: Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+              .animate(
+                CurvedAnimation(
+                  parent: _slideController,
+                  curve: Curves.easeOutCubic,
+                ),
+              ),
           child: factures.isEmpty && !isLoading
               ? _buildEmptyState()
               : ListView.builder(
@@ -292,7 +308,7 @@ class _FactureScreenState extends State<FactureScreen>
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddFACTUREScreen()),
+            MaterialPageRoute(builder: (context) => const AddFactureScreen()),
           );
         },
         backgroundColor: const Color(0xFF1976D2),
@@ -333,17 +349,16 @@ class _FactureScreenState extends State<FactureScreen>
           const SizedBox(height: 8),
           Text(
             'Commencez par créer votre première facture',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 32),
           ElevatedButton.icon(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddFACTUREScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddFactureScreen(),
+                ),
               );
             },
             icon: const Icon(Icons.add),
@@ -364,8 +379,9 @@ class _FactureScreenState extends State<FactureScreen>
 
   Widget _buildFactureCard(Map<String, dynamic> facture, int index) {
     final statusColor = _getStatusColor(facture['statut']);
-    final isOverdue = facture['statut'] == 'Impayée' && 
-                     facture['echeance'].isBefore(DateTime.now());
+    final isOverdue =
+        facture['statut'] == 'Impayée' &&
+        facture['echeance'].isBefore(DateTime.now());
 
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 1),
@@ -416,7 +432,9 @@ class _FactureScreenState extends State<FactureScreen>
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1976D2).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF1976D2,
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
@@ -505,14 +523,18 @@ class _FactureScreenState extends State<FactureScreen>
                                 child: _buildInfoItem(
                                   Icons.calendar_today,
                                   'Date',
-                                  DateFormat('dd/MM/yyyy').format(facture['date']),
+                                  DateFormat(
+                                    'dd/MM/yyyy',
+                                  ).format(facture['date']),
                                 ),
                               ),
                               Expanded(
                                 child: _buildInfoItem(
                                   Icons.schedule,
                                   'Échéance',
-                                  DateFormat('dd/MM/yyyy').format(facture['echeance']),
+                                  DateFormat(
+                                    'dd/MM/yyyy',
+                                  ).format(facture['echeance']),
                                   isOverdue: isOverdue,
                                 ),
                               ),
@@ -527,8 +549,9 @@ class _FactureScreenState extends State<FactureScreen>
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            EditFactureScreen(factureId: facture['id']),
+                                        builder: (context) => EditFactureScreen(
+                                          factureId: facture['id'],
+                                        ),
                                       ),
                                     );
                                   },
@@ -536,7 +559,9 @@ class _FactureScreenState extends State<FactureScreen>
                                   label: const Text('Modifier'),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: const Color(0xFF1976D2),
-                                    side: const BorderSide(color: Color(0xFF1976D2)),
+                                    side: const BorderSide(
+                                      color: Color(0xFF1976D2),
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(20),
                                     ),
@@ -551,7 +576,9 @@ class _FactureScreenState extends State<FactureScreen>
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            DetailFactureScreen(factureId: facture['id']),
+                                            DetailFactureScreen(
+                                              factureId: facture['id'],
+                                            ),
                                       ),
                                     );
                                   },
@@ -581,14 +608,15 @@ class _FactureScreenState extends State<FactureScreen>
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String label, String value, {bool isOverdue = false}) {
+  Widget _buildInfoItem(
+    IconData icon,
+    String label,
+    String value, {
+    bool isOverdue = false,
+  }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: isOverdue ? Colors.red : Colors.grey[600],
-        ),
+        Icon(icon, size: 16, color: isOverdue ? Colors.red : Colors.grey[600]),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -596,10 +624,7 @@ class _FactureScreenState extends State<FactureScreen>
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               ),
               Text(
                 value,

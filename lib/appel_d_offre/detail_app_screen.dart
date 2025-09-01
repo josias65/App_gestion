@@ -152,11 +152,7 @@ class _DetailAppelOffreScreenState extends State<DetailAppelOffreScreen>
             flexibleSpace: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF0F0465),
-                    Color(0xFF3A0CA3),
-                    Color(0xFF6A4C93),
-                  ],
+                  colors: [Colors.blue, Colors.blue, Colors.blue],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -166,7 +162,7 @@ class _DetailAppelOffreScreenState extends State<DetailAppelOffreScreen>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFF0F0465),
+                    color: Colors.blue,
                     blurRadius: 20,
                     offset: Offset(0, 8),
                     spreadRadius: -8,
@@ -871,4 +867,3 @@ class _DetailAppelOffreScreenState extends State<DetailAppelOffreScreen>
     );
   }
 }
-

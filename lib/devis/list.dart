@@ -11,11 +11,9 @@ class DevisListScreen extends StatefulWidget {
 
 class _DevisListScreenState extends State<DevisListScreen>
     with TickerProviderStateMixin {
-  // Animation controller for fade-in effect on the body
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  // State variable to track the currently selected filter
   String selectedFilter = 'Tous';
 
   @override
@@ -37,7 +35,6 @@ class _DevisListScreenState extends State<DevisListScreen>
     super.dispose();
   }
 
-  // Helper function to determine the color based on the quote status
   Color statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'accepté':
@@ -51,7 +48,6 @@ class _DevisListScreenState extends State<DevisListScreen>
     }
   }
 
-  // Helper function to determine the icon based on the quote status
   IconData statusIcon(String status) {
     switch (status.toLowerCase()) {
       case 'accepté':
@@ -91,10 +87,10 @@ class _DevisListScreenState extends State<DevisListScreen>
       ),
     ];
 
-    // Filter the quotes based on the selected status
+    // Filtrage insensible à la casse
     var filteredDevis = devisList.where((devis) {
       if (selectedFilter == 'Tous') return true;
-      return devis.status == selectedFilter;
+      return devis.status.toLowerCase() == selectedFilter.toLowerCase();
     }).toList();
 
     return Scaffold(
@@ -110,11 +106,15 @@ class _DevisListScreenState extends State<DevisListScreen>
           child: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.dashboard,
-                (route) => false,
-              );
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.dashboard,
+                  (route) => false,
+                );
+              }
             },
           ),
         ),
@@ -148,7 +148,7 @@ class _DevisListScreenState extends State<DevisListScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF3F1FBF), Color(0xFF6C5CE7)],
+              colors: [Colors.blue, Colors.blue],
             ),
           ),
         ),
@@ -183,7 +183,7 @@ class _DevisListScreenState extends State<DevisListScreen>
                           'Total',
                           devisList.length.toString(),
                           Icons.description_outlined,
-                          const Color(0xFF3F1FBF),
+                          Colors.blue,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -191,7 +191,7 @@ class _DevisListScreenState extends State<DevisListScreen>
                         child: _buildStatCard(
                           'Acceptés',
                           devisList
-                              .where((d) => d.status == 'Accepté')
+                              .where((d) => d.status.toLowerCase() == 'accepté')
                               .length
                               .toString(),
                           Icons.check_circle_outline,
@@ -203,7 +203,9 @@ class _DevisListScreenState extends State<DevisListScreen>
                         child: _buildStatCard(
                           'En attente',
                           devisList
-                              .where((d) => d.status == 'En attente')
+                              .where(
+                                (d) => d.status.toLowerCase() == 'en attente',
+                              )
                               .length
                               .toString(),
                           Icons.access_time,
@@ -215,7 +217,7 @@ class _DevisListScreenState extends State<DevisListScreen>
                         child: _buildStatCard(
                           'Refusés',
                           devisList
-                              .where((d) => d.status == 'Refusé')
+                              .where((d) => d.status.toLowerCase() == 'refusé')
                               .length
                               .toString(),
                           Icons.cancel_outlined,
@@ -231,7 +233,7 @@ class _DevisListScreenState extends State<DevisListScreen>
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF3F1FBF), Color(0xFF6C5CE7)],
+                        colors: [Colors.blue, Colors.blueAccent],
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -243,7 +245,7 @@ class _DevisListScreenState extends State<DevisListScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${devisList.fold(0.0, (sum, devis) => sum + devis.total).toStringAsFixed(2)} €',
+                          '${devisList.fold(0.0, (sum, devis) => sum + devis.total).toStringAsFixed(2)} frcfa',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -314,7 +316,7 @@ class _DevisListScreenState extends State<DevisListScreen>
                             return Transform.translate(
                               offset: Offset(0, 30 * (1 - value)),
                               child: Opacity(
-                                opacity: value,
+                                opacity: value.clamp(0.0, 1.0),
                                 child: _buildDevisCard(
                                   devis,
                                   statusColor,
@@ -333,12 +335,12 @@ class _DevisListScreenState extends State<DevisListScreen>
       floatingActionButton: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF3F1FBF), Color(0xFF6C5CE7)],
+            colors: [Colors.blue, Colors.blueAccent],
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3F1FBF).withOpacity(0.3),
+              color: Colors.blue.withOpacity(0.3),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -358,7 +360,6 @@ class _DevisListScreenState extends State<DevisListScreen>
     );
   }
 
-  // Widget to build the small stat cards in the header
   Widget _buildStatCard(
     String title,
     String value,
@@ -393,9 +394,8 @@ class _DevisListScreenState extends State<DevisListScreen>
     );
   }
 
-  // Widget to build a single filter chip
   Widget _buildFilterChip(String filter) {
-    final isSelected = selectedFilter == filter;
+    final isSelected = selectedFilter.toLowerCase() == filter.toLowerCase();
     return GestureDetector(
       onTap: () => setState(() => selectedFilter = filter),
       child: AnimatedContainer(
@@ -403,13 +403,13 @@ class _DevisListScreenState extends State<DevisListScreen>
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF3F1FBF) : Colors.transparent,
+          color: isSelected ? Colors.blue : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           filter,
           style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF3F1FBF),
+            color: isSelected ? Colors.white : Colors.blue,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -417,7 +417,6 @@ class _DevisListScreenState extends State<DevisListScreen>
     );
   }
 
-  // Widget to build a single quote card
   Widget _buildDevisCard(
     DevisModel devis,
     Color Function(String) statusColor,
@@ -443,8 +442,8 @@ class _DevisListScreenState extends State<DevisListScreen>
           onTap: () async {
             await Navigator.pushNamed(
               context,
-              AppRoutes.getDevisDetail(devis.reference),
-              arguments: {'devis': devis},
+              AppRoutes.devisDetail, // Utiliser la route statique
+              arguments: devis, // Passer l'objet DevisModel directement
             );
           },
           child: Padding(
@@ -456,7 +455,7 @@ class _DevisListScreenState extends State<DevisListScreen>
                   height: 50,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF3F1FBF), Color(0xFF6C5CE7)],
+                      colors: [Colors.blue, Colors.blue],
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -483,11 +482,11 @@ class _DevisListScreenState extends State<DevisListScreen>
                           ),
                           const Spacer(),
                           Text(
-                            "${devis.total.toStringAsFixed(2)} €",
+                            "${devis.total.toStringAsFixed(2)} frcfa",
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF3F1FBF),
+                              color: Colors.blue,
                             ),
                           ),
                         ],
@@ -580,7 +579,6 @@ class _DevisListScreenState extends State<DevisListScreen>
     );
   }
 
-  // Widget to display a message when the list is empty
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -590,13 +588,13 @@ class _DevisListScreenState extends State<DevisListScreen>
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: const Color(0xFF3F1FBF).withOpacity(0.1),
+              color: Colors.blue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(50),
             ),
             child: const Icon(
               Icons.description_outlined,
               size: 50,
-              color: Color(0xFF3F1FBF),
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 24),

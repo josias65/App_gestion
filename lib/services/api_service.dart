@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import 'auth_service.dart';
+import 'response/api_response.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -152,7 +153,9 @@ class ApiService {
           // Retourner une erreur pour que l'appelant puisse réessayer
           return ApiResponse.error('Token expiré, veuillez réessayer');
         } else {
-          return ApiResponse.error('Session expirée, veuillez vous reconnecter');
+          return ApiResponse.error(
+            'Session expirée, veuillez vous reconnecter',
+          );
         }
       }
 
@@ -167,17 +170,19 @@ class ApiService {
         return ApiResponse.error(errorMessage);
       }
     } catch (e) {
-      return ApiResponse.error('Erreur de parsing de la réponse: ${e.toString()}');
+      return ApiResponse.error(
+        'Erreur de parsing de la réponse: ${e.toString()}',
+      );
     }
   }
 
   // Extraction du message d'erreur
   String _extractErrorMessage(dynamic body) {
     if (body is Map<String, dynamic>) {
-      return body['message'] ?? 
-             body['error'] ?? 
-             body['detail'] ?? 
-             'Erreur inconnue';
+      return body['message'] ??
+          body['error'] ??
+          body['detail'] ??
+          'Erreur inconnue';
     }
     return 'Erreur inconnue';
   }
@@ -229,50 +234,6 @@ class ApiService {
       return _handleResponse<T>(response, fromJson);
     } catch (e) {
       return ApiResponse.error(_handleError(e));
-    }
-  }
-}
-
-// Classe pour encapsuler les réponses API
-class ApiResponse<T> {
-  final bool success;
-  final T? data;
-  final String? error;
-  final int? statusCode;
-
-  ApiResponse._({
-    required this.success,
-    this.data,
-    this.error,
-    this.statusCode,
-  });
-
-  factory ApiResponse.success(T data, {int? statusCode}) {
-    return ApiResponse._(
-      success: true,
-      data: data,
-      statusCode: statusCode,
-    );
-  }
-
-  factory ApiResponse.error(String error, {int? statusCode}) {
-    return ApiResponse._(
-      success: false,
-      error: error,
-      statusCode: statusCode,
-    );
-  }
-
-  // Méthodes utilitaires
-  bool get hasError => !success;
-  bool get hasData => success && data != null;
-
-  // Conversion de type
-  ApiResponse<R> map<R>(R Function(T) transform) {
-    if (success && data != null) {
-      return ApiResponse.success(transform(data!));
-    } else {
-      return ApiResponse.error(error ?? 'Erreur inconnue');
     }
   }
 }

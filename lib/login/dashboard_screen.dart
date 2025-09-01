@@ -6,85 +6,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:appgestion/appel_d_offre/list_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'package:appgestion/services/local_db_service.dart';
+import 'package:appgestion/services/local_http_server.dart';
+import 'package:appgestion/services/pdf_service.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
 
-// The main entry point of the Flutter application.
-void main() {
-  runApp(const MyApp());
-}
-
-// =============================================================================
-// APP AND ROUTING SETUP
-// =============================================================================
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dashboard App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        appBarTheme: const AppBarTheme(
-          color: Colors.blue,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      home: const DashboardScreen(),
-      routes: {
-        AppRoutes.dashboard: (context) => const DashboardScreen(),
-        AppRoutes.clients: (context) =>
-            const PlaceholderScreen(title: 'Clients'),
-        AppRoutes.devis: (context) => const PlaceholderScreen(title: 'Devis'),
-        AppRoutes.stock: (context) => const StockListScreen(),
-        AppRoutes.commandes: (context) =>
-            const PlaceholderScreen(title: 'Commandes'),
-        AppRoutes.factures: (context) =>
-            const PlaceholderScreen(title: 'Factures'),
-        AppRoutes.marcheList: (context) =>
-            const PlaceholderScreen(title: 'Marché'),
-        AppRoutes.relances: (context) =>
-            const PlaceholderScreen(title: 'Relances'),
-        AppRoutes.recouvrements: (context) =>
-            const PlaceholderScreen(title: 'Recouvrements'),
-        AppRoutes.listAppelsOffres: (context) => const AppelsOffresScreen(),
-        AppRoutes.settings: (context) =>
-            const PlaceholderScreen(title: 'Paramètres'),
-        AppRoutes.profil: (context) => const PlaceholderScreen(title: 'Profil'),
-      },
-    );
-  }
-}
-
-// A generic placeholder screen for navigation.
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const PlaceholderScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: const Color(0xFF0D47A1),
-      ),
-      body: Center(
-        child: Text(
-          'Contenu pour la section $title',
-          style: const TextStyle(fontSize: 24, color: Colors.grey),
-        ),
-      ),
-    );
-  }
-}
+import 'test_api_screen.dart';
 
 // =============================================================================
 // DASHBOARD SCREEN WIDGETS
@@ -122,7 +50,10 @@ class DashboardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
-              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              final authProvider = Provider.of<AuthProvider>(
+                context,
+                listen: false,
+              );
               await authProvider.forceLogout();
             },
             tooltip: 'Déconnexion',
@@ -231,7 +162,7 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 _StatCard(
                   title: "Ventes du jour",
-                  value: "2 500 €",
+                  value: "2 500 frcfa",
                   subtitle: "+12% par rapport à hier",
                   icon: Icons.attach_money,
                   color: Color(0xFF1E88E5),
@@ -321,6 +252,13 @@ class DashboardScreen extends StatelessWidget {
               icon: Icons.person_add_alt_1,
               text: "Nouveau client ajouté",
             ),
+            const SizedBox(height: 24),
+            const Text(
+              "Démos sans backend",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const _DemoBackendLessSection(),
           ],
         ),
       ),
@@ -374,6 +312,173 @@ class _StatCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DemoBackendLessSection extends StatefulWidget {
+  const _DemoBackendLessSection();
+
+  @override
+  State<_DemoBackendLessSection> createState() =>
+      _DemoBackendLessSectionState();
+}
+
+class _DemoBackendLessSectionState extends State<_DemoBackendLessSection> {
+  final LocalHttpServer _server = LocalHttpServer();
+  bool _hiveReady = false;
+  String? _lastPdfPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await LocalDbService.initialize();
+    setState(() => _hiveReady = true);
+  }
+
+  Future<void> _toggleServer() async {
+    if (_server.isRunning) {
+      await _server.stop();
+    } else {
+      await _server.start();
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _seedLocalData() async {
+    final db = LocalDbService();
+    await db.upsertClient('1', {
+      'id': '1',
+      'name': 'Client Local',
+      'company': 'Entreprise X',
+      'status': 'actif',
+      'revenue': 12000.0,
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Client local ajouté avec Hive')),
+      );
+    }
+  }
+
+  Future<void> _generatePdf() async {
+    final file = await PdfService().generateSimpleReport(
+      title: 'Rapport local',
+      rows: [
+        {'Nom': 'Client Local', 'Chiffre': '12000'},
+      ],
+    );
+    setState(() => _lastPdfPath = file.path);
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('PDF généré: ${file.path}')));
+    }
+  }
+
+  Future<void> _shareLastPdf() async {
+    final path = _lastPdfPath;
+    if (path == null || !File(path).existsSync()) return;
+    await Share.shareXFiles([XFile(path)], text: 'Rapport généré');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Stockage local (Hive)'),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _hiveReady ? _seedLocalData : null,
+                  child: const Text('Ajouter un client local'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Serveur HTTP local: ${_server.isRunning ? 'actif (port ${_server.port})' : 'arrêté'}',
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _toggleServer,
+                  child: Text(_server.isRunning ? 'Arrêter' : 'Démarrer'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Génération de PDF locale'),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _generatePdf,
+                      child: const Text('Générer PDF'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _shareLastPdf,
+                      child: const Text('Partager dernier PDF'),
+                    ),
+                  ],
+                ),
+                if (_lastPdfPath != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text('Dernier PDF: $_lastPdfPath'),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Tests API (BaaS/HTTP)'),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const TestApiScreen()),
+                    );
+                  },
+                  child: const Text('Ouvrir écran de test'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -818,76 +923,5 @@ class _StockListScreenState extends State<StockListScreen> {
 }
 
 // =============================================================================
-// APPELS D'OFFRES SCREEN
-// =============================================================================
-
-class AppelsOffresScreen extends StatelessWidget {
-  const AppelsOffresScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final List<Map<String, String>> appels = [
-      {
-        'titre': 'Acquisition de serveurs haute performance',
-        'date': '21/07/2025',
-        'etat': 'Ouvert',
-      },
-      {
-        'titre': 'Déploiement d\'un réseau sécurisé pour datacenter',
-        'date': '18/07/2025',
-        'etat': 'Clôturé',
-      },
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Appels d’offres'),
-        backgroundColor: const Color(0xFF0D47A1),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: appels.length,
-        itemBuilder: (context, index) {
-          final appel = appels[index];
-          final isOpen = appel['etat'] == 'Ouvert';
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            elevation: 3,
-            child: ListTile(
-              title: Text(appel['titre'] ?? ''),
-              subtitle: Text('Date limite : ${appel['date']}'),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isOpen ? Colors.green : Colors.grey,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  appel['etat'] ?? '',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              onTap: () {
-                // Ajoute ici la navigation vers le détail si besoin
-              },
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Ajoute ici la logique pour créer un nouvel appel d’offres
-        },
-        label: const Text('Nouvel appel'),
-        icon: const Icon(Icons.add),
-        backgroundColor: const Color(0xFF0D47A1),
-      ),
-    );
-  }
-}
+// (La définition de AppelsOffresScreen est fournie dans
+// `lib/appel_d_offre/list_screen.dart` et importée en haut de fichier.)

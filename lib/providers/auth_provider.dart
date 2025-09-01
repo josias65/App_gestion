@@ -105,7 +105,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
-
+    
     try {
       await _authService.logout();
     } catch (e) {

@@ -219,7 +219,7 @@ class _MarcheAddScreenState extends State<MarcheAddScreen> {
                     child: TextFormField(
                       controller: _budgetController,
                       decoration: const InputDecoration(
-                        labelText: 'Budget (€)*',
+                        labelText: 'Budget (frcfa)*',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.euro),
                       ),

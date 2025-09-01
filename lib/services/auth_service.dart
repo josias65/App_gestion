@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 class AuthService {
-  static const String baseUrl =
-      'https://api.votre-domaine.com'; // Remplacez par votre URL d'API
+  static String get baseUrl => ApiConfig.baseUrlForEnvironment;
   static const String loginEndpoint = '/auth/login';
   static const String registerEndpoint = '/auth/register';
   static const String refreshEndpoint = '/auth/refresh';
@@ -35,30 +35,39 @@ class AuthService {
   // Connexion utilisateur
   Future<AuthResult> login(String email, String password) async {
     try {
-      // Mode test pour développement - toujours actif pour les tests
-      return _testLogin(email, password);
-
-      // ignore: dead_code
+      // Utiliser l'API mock configurée
       final response = await http.post(
-        Uri.parse('$baseUrl$loginEndpoint'),
+        Uri.parse('$baseUrl/users'),
         headers: _headers,
-        body: jsonEncode({'email': email, 'password': password}),
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'name': 'Utilisateur Mock',
+        }),
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        await _saveTokens(data['access_token'], data['refresh_token']);
-        await _saveUser(data['user']);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Simuler une réponse d'authentification réussie
+        final mockUser = {
+          'id': DateTime.now().millisecondsSinceEpoch,
+          'name': 'Utilisateur Mock',
+          'email': email,
+          'avatar': null,
+          'created_at': DateTime.now().toIso8601String(),
+          'role': 'user',
+        };
 
-        return AuthResult.success(data['user']);
-      } else if (response.statusCode == 401) {
-        return AuthResult.error('Email ou mot de passe incorrect');
+        final mockToken = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
+        await _saveTokens(mockToken, 'mock_refresh_token');
+        await _saveUser(mockUser);
+
+        return AuthResult.success(mockUser);
       } else {
-        final error = jsonDecode(response.body);
-        return AuthResult.error(error['message'] ?? 'Erreur de connexion');
+        return AuthResult.error('Erreur de connexion à l\'API');
       }
     } catch (e) {
-      return AuthResult.error('Erreur de connexion: ${e.toString()}');
+      // Fallback vers le mode test si l'API mock échoue
+      return _testLogin(email, password);
     }
   }
 

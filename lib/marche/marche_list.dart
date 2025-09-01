@@ -34,11 +34,7 @@ class _MarcheListScreenState extends State<MarcheListScreen> {
       'budget': 75000.00,
       'description': 'Livraison de 200 PC et équipements réseau.',
       'soumission_date_limite': '2025-05-25',
-      'documents': [
-        'Spécifications techniques',
-        'Devis détaillé',
-        'Garantie',
-      ],
+      'documents': ['Spécifications techniques', 'Devis détaillé', 'Garantie'],
     },
     {
       'id': 'marche_003',
@@ -49,11 +45,7 @@ class _MarcheListScreenState extends State<MarcheListScreen> {
       'budget': 35000.00,
       'description': 'Site de vente en ligne pour PME.',
       'soumission_date_limite': '2025-08-15',
-      'documents': [
-        'Cahier des charges',
-        'Maquettes',
-        'Plan de déploiement',
-      ],
+      'documents': ['Cahier des charges', 'Maquettes', 'Plan de déploiement'],
     },
   ];
 
@@ -71,10 +63,7 @@ class _MarcheListScreenState extends State<MarcheListScreen> {
   }
 
   void _ajouterMarche() async {
-    final result = await Navigator.pushNamed(
-      context,
-      AppRoutes.marcheAdd,
-    );
+    final result = await Navigator.pushNamed(context, AppRoutes.marcheAdd);
 
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
@@ -117,9 +106,7 @@ class _MarcheListScreenState extends State<MarcheListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmer la suppression'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer ce marché ?',
-        ),
+        content: const Text('Êtes-vous sûr de vouloir supprimer ce marché ?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -183,26 +170,16 @@ class _MarcheListScreenState extends State<MarcheListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.work_outline,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.work_outline, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
                   Text(
                     'Aucun marché à afficher',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                   SizedBox(height: 8),
                   Text(
                     'Ajoutez votre premier marché',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
@@ -312,7 +289,10 @@ class _MarcheListScreenState extends State<MarcheListScreen> {
                                       children: [
                                         Icon(Icons.delete, color: Colors.red),
                                         SizedBox(width: 8),
-                                        Text('Supprimer', style: TextStyle(color: Colors.red)),
+                                        Text(
+                                          'Supprimer',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -334,11 +314,13 @@ class _MarcheListScreenState extends State<MarcheListScreen> {
                                   marche['statut']!,
                                   style: const TextStyle(color: Colors.white),
                                 ),
-                                backgroundColor: _getChipColor(marche['statut']!),
+                                backgroundColor: _getChipColor(
+                                  marche['statut']!,
+                                ),
                               ),
                               const Spacer(),
                               Text(
-                                '${marche['budget']?.toStringAsFixed(0)} €',
+                                '${marche['budget']?.toStringAsFixed(0)} frcfa',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,

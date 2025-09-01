@@ -13,7 +13,7 @@ class _RelancesScreenState extends State<RelancesScreen> {
   List<Map<String, dynamic>> _relances = [
     {
       'id': 1,
-      'client': 'Jean Dupont',
+      'client': 'Marc KPELOU',
       'date': '2025-07-20',
       'montant': '350',
       'statut': 'En attente',
@@ -22,7 +22,7 @@ class _RelancesScreenState extends State<RelancesScreen> {
     },
     {
       'id': 2,
-      'client': 'Marie Curie',
+      'client': 'Mouss SISOKO',
       'date': '2025-07-22',
       'montant': '1200',
       'statut': 'Relancé',
@@ -31,7 +31,7 @@ class _RelancesScreenState extends State<RelancesScreen> {
     },
     {
       'id': 3,
-      'client': 'Paul Martin',
+      'client': 'Paul TEGE',
       'date': '2025-07-23',
       'montant': '500',
       'statut': 'Payé',
@@ -44,10 +44,7 @@ class _RelancesScreenState extends State<RelancesScreen> {
   String _selectedFilter = 'Toutes';
 
   void _ajouterRelance() async {
-    final result = await Navigator.pushNamed(
-      context,
-      AppRoutes.addRelance,
-    );
+    final result = await Navigator.pushNamed(context, AppRoutes.addRelance);
 
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
@@ -168,7 +165,9 @@ class _RelancesScreenState extends State<RelancesScreen> {
     }).toList();
 
     if (_selectedFilter != 'Toutes') {
-      filtered = filtered.where((relance) => relance['statut'] == _selectedFilter).toList();
+      filtered = filtered
+          .where((relance) => relance['statut'] == _selectedFilter)
+          .toList();
     }
 
     return filtered;
@@ -241,10 +240,7 @@ class _RelancesScreenState extends State<RelancesScreen> {
                         SizedBox(height: 16),
                         Text(
                           'Aucune relance trouvée',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -279,7 +275,9 @@ class _RelancesScreenState extends State<RelancesScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: _getChipColor(relance['statut']).withOpacity(0.1),
+                                        color: _getChipColor(
+                                          relance['statut'],
+                                        ).withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Icon(
@@ -290,7 +288,8 @@ class _RelancesScreenState extends State<RelancesScreen> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             relance['client'],
@@ -358,9 +357,17 @@ class _RelancesScreenState extends State<RelancesScreen> {
                                           value: 'paid',
                                           child: Row(
                                             children: [
-                                              Icon(Icons.check_circle, color: Colors.green),
+                                              Icon(
+                                                Icons.check_circle,
+                                                color: Colors.green,
+                                              ),
                                               SizedBox(width: 8),
-                                              Text('Marquer payé', style: TextStyle(color: Colors.green)),
+                                              Text(
+                                                'Marquer payé',
+                                                style: TextStyle(
+                                                  color: Colors.green,
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -368,9 +375,17 @@ class _RelancesScreenState extends State<RelancesScreen> {
                                           value: 'relaunch',
                                           child: Row(
                                             children: [
-                                              Icon(Icons.refresh, color: Colors.orange),
+                                              Icon(
+                                                Icons.refresh,
+                                                color: Colors.orange,
+                                              ),
                                               SizedBox(width: 8),
-                                              Text('Relancer', style: TextStyle(color: Colors.orange)),
+                                              Text(
+                                                'Relancer',
+                                                style: TextStyle(
+                                                  color: Colors.orange,
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -378,9 +393,17 @@ class _RelancesScreenState extends State<RelancesScreen> {
                                           value: 'delete',
                                           child: Row(
                                             children: [
-                                              Icon(Icons.delete, color: Colors.red),
+                                              Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
+                                              ),
                                               SizedBox(width: 8),
-                                              Text('Supprimer', style: TextStyle(color: Colors.red)),
+                                              Text(
+                                                'Supprimer',
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -395,9 +418,13 @@ class _RelancesScreenState extends State<RelancesScreen> {
                                     Chip(
                                       label: Text(
                                         relance['statut'],
-                                        style: const TextStyle(color: Colors.white),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
                                       ),
-                                      backgroundColor: _getChipColor(relance['statut']),
+                                      backgroundColor: _getChipColor(
+                                        relance['statut'],
+                                      ),
                                     ),
                                     const Spacer(),
                                     Text(

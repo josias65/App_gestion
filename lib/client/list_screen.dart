@@ -21,7 +21,7 @@ class _ClientListScreenState extends State<ClientListScreen>
     },
     {'nom': 'Adama TRAORE', 'entreprise': 'Global Tech', 'statut': 'Actif'},
     {
-      'nom': 'Sophie DUPONT',
+      'nom': 'Sophie SAMA',
       'entreprise': 'Innov Solutions',
       'statut': 'Inactif',
     },
