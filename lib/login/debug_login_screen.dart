@@ -43,16 +43,21 @@ class _DebugLoginScreenState extends State<DebugLoginScreen> {
 
       if (result.success) {
         debugInfo = '✅ Connexion réussie!\n';
-        debugInfo = 'Utilisateur: ${result.user?['name']}\n';
-        debugInfo = 'Email: ${result.user?['email']}\n';
+        if (result.user != null) {
+          final user = result.user!;
+          debugInfo = '${debugInfo}Utilisateur: ${user.name}\n';
+          debugInfo = '${debugInfo}Email: ${user.email}\n';
+        }
 
         final token = await authService.getToken();
-        debugInfo = 'Token: ${token?.substring(0, 20)}...\n';
+        if (token != null) {
+          debugInfo = '${debugInfo}Token: ${token.length > 20 ? '${token.substring(0, 20)}...' : token}\n';
+        }
 
         final isLoggedIn = await authService.isLoggedIn();
-        debugInfo = 'Est connecté: $isLoggedIn\n';
+        debugInfo = '${debugInfo}Est connecté: $isLoggedIn\n';
       } else {
-        errorMessage = '❌ Erreur: ${result.error}';
+        errorMessage = '❌ Erreur: ${result.message}';
       }
     } catch (e) {
       errorMessage = '❌ Exception: $e';

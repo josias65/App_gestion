@@ -1,0 +1,15 @@
+Voici la liste des fichiers à conserver :
+
+- lib/config/api_config.dart
+- lib/config/app_config.dart
+- lib/models/user_model.dart
+- lib/providers/auth_provider.dart
+- lib/screens/auth/login_screen.dart
+- lib/screens/home/home_screen.dart
+- lib/services/auth_service_new.dart
+- lib/widgets/app_bar.dart
+- lib/widgets/custom_text_field.dart
+- lib/widgets/primary_button.dart
+- lib/main.dart
+
+Tous les autres fichiers peuvent être supprimés.

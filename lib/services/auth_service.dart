@@ -1,73 +1,270 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../config/api_config.dart';
+import '../config/app_config.dart';
+import '../models/user_model.dart';
 
+/// Service de gestion de l'authentification
+/// Gère la connexion, l'inscription, la déconnexion et le rafraîchissement du token
 class AuthService {
-  static String get baseUrl => ApiConfig.baseUrlForEnvironment;
-  static const String loginEndpoint = '/auth/login';
-  static const String registerEndpoint = '/auth/register';
-  static const String refreshEndpoint = '/auth/refresh';
-  static const String logoutEndpoint = '/auth/logout';
+  // Configuration de l'API
+  final String baseUrl = ApiConfig.devBaseUrl; // Utilise l'URL de développement par défaut
+  final String loginEndpoint = ApiConfig.loginEndpoint;
+  final String registerEndpoint = ApiConfig.registerEndpoint;
+  final String refreshEndpoint = ApiConfig.refreshEndpoint;
+  final String logoutEndpoint = ApiConfig.logoutEndpoint;
 
-  // Clés pour SharedPreferences
+  // Clés pour le stockage local
   static const String tokenKey = 'auth_token';
   static const String refreshTokenKey = 'refresh_token';
   static const String userKey = 'user_data';
+  
+  // Contrôleurs pour les streams
+  final _authStateController = StreamController<User?>.broadcast();
+  final _isLoadingController = StreamController<bool>.broadcast();
 
-  // Singleton pattern
-  static final AuthService _instance = AuthService._internal();
-  factory AuthService() => _instance;
-  AuthService._internal();
+  // Getters pour les streams
+  Stream<User?> get authStateChanges => _authStateController.stream;
+  Stream<bool> get isLoading => _isLoadingController.stream;
 
-  // Headers communs
+  // État actuel
+  User? _currentUser;
+  String? _currentToken;
+  String? _refreshToken;
+  Timer? _tokenRefreshTimer;
+
+  // Configuration
+  static const Duration tokenRefreshThreshold = Duration(minutes: 5);
+  static const Duration tokenExpiration = Duration(hours: 1);
+  
+  // Headers pour les requêtes API
   Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
+        ...ApiConfig.defaultHeaders,
+      };
 
-  // Headers avec token d'authentification
+  // Headers pour les requêtes authentifiées
   Future<Map<String, String>> get _authHeaders async {
     final token = await getToken();
-    return {..._headers, if (token != null) 'Authorization': 'Bearer $token'};
+    return {
+      ..._headers,
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  // Constructeur
+  AuthService() {
+    _init();
+  }
+  
+  // Initialisation
+  Future<void> _init() async {
+    await _loadAuthFromPrefs();
+    _setupTokenRefresh();
+  }
+
+  // Charger l'état d'authentification depuis les préférences
+  Future<void> _loadAuthFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(tokenKey);
+      final refreshToken = prefs.getString(refreshTokenKey);
+      final userJson = prefs.getString(userKey);
+
+      if (token != null && userJson != null) {
+        _currentToken = token;
+        _refreshToken = refreshToken;
+        _currentUser = User.fromJson(jsonDecode(userJson));
+        _authStateController.add(_currentUser);
+      }
+    } catch (e) {
+      developer.log('Erreur lors du chargement de l\'authentification: $e',
+          name: 'AuthService');
+      await _clearAuthData();
+    }
+  }
+
+  // Sauvegarder l'état d'authentification dans les préférences
+  Future<void> _saveAuthData(
+      String token, String? refreshToken, User user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(tokenKey, token);
+      if (refreshToken != null) {
+        await prefs.setString(refreshTokenKey, refreshToken);
+      }
+      await prefs.setString(userKey, jsonEncode(user.toJson()));
+
+      _currentToken = token;
+      _refreshToken = refreshToken;
+      _currentUser = user;
+      _authStateController.add(user);
+    } catch (e) {
+      developer.log('Erreur lors de la sauvegarde de l\'authentification: $e',
+          name: 'AuthService');
+      rethrow;
+    }
+  }
+
+  // Effacer les données d'authentification
+  Future<void> _clearAuthData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(tokenKey);
+      await prefs.remove(refreshTokenKey);
+      await prefs.remove(userKey);
+
+      _currentToken = null;
+      _refreshToken = null;
+      _currentUser = null;
+      _authStateController.add(null);
+    } catch (e) {
+      developer.log(
+          'Erreur lors de la suppression des données d\'authentification: $e',
+          name: 'AuthService');
+      rethrow;
+    }
+  }
+
+  // Configurer le rafraîchissement automatique du token
+  void _setupTokenRefresh() {
+    _tokenRefreshTimer?.cancel();
+    if (_currentToken != null) {
+      // Rafraîchir le token 5 minutes avant son expiration
+      // Note: Vous devrez ajuster cette logique en fonction de votre implémentation de token
+      _tokenRefreshTimer = Timer.periodic(
+        const Duration(minutes: 25),
+        (timer) => _refreshAuthToken(),
+      );
+    }
+  }
+
+  // Rafraîchir le token d'authentification
+  Future<bool> _refreshAuthToken() async {
+    if (_refreshToken == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl$refreshEndpoint'),
+        headers: _headers,
+        body: jsonEncode({'refresh_token': _refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final token = data['token'];
+        final refreshToken = data['refresh_token'] ?? _refreshToken;
+        
+        if (token != null) {
+          await _saveAuthData(token, refreshToken, _currentUser!);
+          return true;
+        }
+      }
+    } catch (e) {
+      developer.log('Erreur lors du rafraîchissement du token: $e',
+          name: 'AuthService');
+    }
+    
+    // En cas d'échec, déconnecter l'utilisateur
+    await logout();
+    return false;
   }
 
   // Connexion utilisateur
   Future<AuthResult> login(String email, String password) async {
+    if (email.isEmpty || password.isEmpty) {
+      return const AuthResult(
+          success: false, message: 'Veuillez remplir tous les champs');
+    }
+
+    _isLoadingController.add(true);
+
     try {
-      // Utiliser l'API mock configurée
+      if (AppConfig.useMockData) {
+        return _testLogin(email, password);
+      }
+
       final response = await http.post(
-        Uri.parse('$baseUrl/users'),
+        Uri.parse('$baseUrl$loginEndpoint'),
         headers: _headers,
         body: jsonEncode({
           'email': email,
           'password': password,
-          'name': 'Utilisateur Mock',
         }),
-      );
+      ).timeout(const Duration(seconds: 30));
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Simuler une réponse d'authentification réussie
-        final mockUser = {
-          'id': DateTime.now().millisecondsSinceEpoch,
-          'name': 'Utilisateur Mock',
-          'email': email,
-          'avatar': null,
-          'created_at': DateTime.now().toIso8601String(),
-          'role': 'user',
-        };
+      final responseData = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        if (responseData['token'] == null) {
+          return const AuthResult(
+              success: false, 
+              message: 'Token manquant dans la réponse du serveur');
+        }
 
-        final mockToken = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-        await _saveTokens(mockToken, 'mock_refresh_token');
-        await _saveUser(mockUser);
-
-        return AuthResult.success(mockUser);
+        final token = responseData['token'] as String;
+        final refreshToken = responseData['refresh_token'] as String?;
+        final userData = responseData['user'] as Map<String, dynamic>?;
+        
+        if (userData == null) {
+          return const AuthResult(
+              success: false,
+              message: 'Données utilisateur manquantes dans la réponse');
+        }
+        
+        // Sauvegarder les tokens et les données utilisateur
+        await _saveTokens(token, refreshToken ?? '');
+        await _saveUser(userData);
+        
+        // Mettre à jour l'état de l'utilisateur
+        _currentUser = User.fromJson(userData);
+        _currentToken = token;
+        _refreshToken = refreshToken;
+        _authStateController.add(_currentUser);
+        
+        // Démarrer le timer de rafraîchissement du token
+        _startTokenRefreshTimer();
+        
+        return AuthResult(
+          success: true,
+          message: 'Connexion réussie',
+          user: _currentUser,
+          token: token,
+        );
       } else {
-        return AuthResult.error('Erreur de connexion à l\'API');
+        // Gestion des erreurs HTTP
+        final errorMessage = responseData['message'] ?? 'Erreur de connexion';
+        return AuthResult(
+          success: false,
+          message: 'Échec de la connexion: $errorMessage',
+        );
       }
+    } on TimeoutException {
+      return const AuthResult(
+        success: false,
+        message: 'La connexion a expiré. Veuillez réessayer.',
+      );
     } catch (e) {
-      // Fallback vers le mode test si l'API mock échoue
-      return _testLogin(email, password);
+      developer.log('Erreur lors de la connexion: $e', 
+          name: 'AuthService',
+          error: e,
+          stackTrace: StackTrace.current);
+      
+      // En cas d'erreur réseau, essayer le mode test si activé
+      if (AppConfig.useMockData) {
+        return _testLogin(email, password);
+      }
+      
+      return AuthResult(
+        success: false,
+        message: 'Une erreur est survenue. Veuillez réessayer plus tard.',
+      );
+    } finally {
+      _isLoadingController.add(false);
     }
   }
 
@@ -79,7 +276,7 @@ class AuthService {
     // Test avec des credentials spécifiques
     if (email == 'test@example.com' && password == 'password123') {
       final testUser = {
-        'id': 1,
+        'id': '1',
         'name': 'Utilisateur Test',
         'email': email,
         'avatar': null,
@@ -90,7 +287,7 @@ class AuthService {
       await _saveTokens('test_access_token', 'test_refresh_token');
       await _saveUser(testUser);
 
-      return AuthResult.success(testUser);
+      return AuthResult.success(User.fromJson(testUser), 'test_access_token');
     } else if (email == 'admin@neo.com' && password == 'admin123') {
       final adminUser = {
         'id': 2,
@@ -104,7 +301,7 @@ class AuthService {
       await _saveTokens('admin_access_token', 'admin_refresh_token');
       await _saveUser(adminUser);
 
-      return AuthResult.success(adminUser);
+      return AuthResult.success(User.fromJson(adminUser), 'admin_access_token');
     } else {
       return AuthResult.error('Email ou mot de passe incorrect');
     }
@@ -128,7 +325,10 @@ class AuthService {
         await _saveTokens(data['access_token'], data['refresh_token']);
         await _saveUser(data['user']);
 
-        return AuthResult.success(data['user']);
+        return AuthResult.success(
+          User.fromJson(data['user']),
+          data['access_token'] ?? data['token'],
+        );
       } else {
         final error = jsonDecode(response.body);
         return AuthResult.error(error['message'] ?? 'Erreur d\'inscription');
@@ -146,12 +346,14 @@ class AuthService {
     } catch (e) {
       // Ignorer les erreurs lors de la déconnexion
     } finally {
+      _stopTokenRefreshTimer();
       await _clearTokens();
     }
   }
 
   // Forcer la déconnexion (nettoyer toutes les données)
   Future<void> forceLogout() async {
+    _stopTokenRefreshTimer();
     await _clearTokens();
   }
 
@@ -186,6 +388,30 @@ class AuthService {
     } catch (e) {
       return false;
     }
+  }
+
+  // Démarrer le timer de rafraîchissement du token
+  void _startTokenRefreshTimer() {
+    _tokenRefreshTimer?.cancel();
+    _tokenRefreshTimer = Timer.periodic(
+      const Duration(minutes: 50), // Rafraîchir le token avant qu'il n'expire
+      (timer) async {
+        if (_refreshToken != null) {
+          try {
+            await refreshToken();
+          } catch (e) {
+            developer.log('Erreur lors du rafraîchissement automatique du token: $e',
+                name: 'AuthService');
+          }
+        }
+      },
+    );
+  }
+
+  // Arrêter le timer de rafraîchissement du token
+  void _stopTokenRefreshTimer() {
+    _tokenRefreshTimer?.cancel();
+    _tokenRefreshTimer = null;
   }
 
   // Obtenir les informations de l'utilisateur
@@ -304,47 +530,22 @@ class AuthService {
 // Classe pour gérer les résultats d'authentification
 class AuthResult {
   final bool success;
-  final String? error;
-  final Map<String, dynamic>? user;
+  final String? message;
+  final User? user;
+  final String? token;
 
-  AuthResult.success(this.user) : success = true, error = null;
+  const AuthResult({required this.success, this.message, this.user, this.token});
 
-  AuthResult.error(this.error) : success = false, user = null;
-}
-
-// Modèle utilisateur
-class User {
-  final String id;
-  final String name;
-  final String email;
-  final String? avatar;
-  final DateTime createdAt;
-
-  User({
-    required this.id,
-    required this.name,
-    required this.email,
-    this.avatar,
-    required this.createdAt,
-  });
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'],
-      name: json['name'],
-      email: json['email'],
-      avatar: json['avatar'],
-      createdAt: DateTime.parse(json['created_at']),
-    );
+  // Constructeur pour un succès
+  factory AuthResult.success(User user, String token) {
+    return AuthResult(success: true, user: user, token: token);
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'avatar': avatar,
-      'created_at': createdAt.toIso8601String(),
-    };
+  // Constructeur pour une erreur
+  factory AuthResult.error(String message) {
+    return AuthResult(success: false, message: message);
   }
+
+  // Getter pour l'erreur
+  String? get error => success ? null : message;
 }

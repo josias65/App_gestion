@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Erreur de connexion'),
+              content: Text(result.message ?? 'Erreur de connexion'),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
             ),

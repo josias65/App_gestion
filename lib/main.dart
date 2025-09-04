@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'database/simple_database_service.dart';
 
 // Import de tous les écrans principaux
 import 'login/login.dart';
@@ -49,8 +50,20 @@ import 'recouvrements/add_recouvrement.dart';
 import 'recouvrements/detail_recouvrement.dart';
 import 'recouvrements/edit_recouvrement.dart';
 import 'routes/app_routes.dart';
+import 'screens/simple_database_test_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+    // Initialiser la base de données simple
+    await SimpleDatabaseService.initialize();
+    
+    print('Application initialisée avec succès');
+  } catch (e) {
+    print('Erreur lors de l\'initialisation: $e');
+  }
+  
   runApp(
     ChangeNotifierProvider(create: (_) => AuthProvider(), child: const MyApp()),
   );
@@ -99,6 +112,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.addCommande: (context) => const AddCommandeScreen(),
         AppRoutes.factures: (context) => const FactureScreen(),
         AppRoutes.addFacture: (context) => const AddFactureScreen(),
+        '/database-test': (context) => const SimpleDatabaseTestScreen(),
       },
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -182,6 +196,7 @@ class MyApp extends StatelessWidget {
           // --- Devis ---
           case AppRoutes.devisDetail:
             final arg = settings.arguments;
+            // ignore: unused_local_variable
             DevisModel? devis;
             if (arg is DevisModel) {
               devis = arg;

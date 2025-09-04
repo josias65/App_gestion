@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'lib/services/auth_service.dart';
-import 'lib/config/api_config.dart';
+import '../services/auth_service.dart';
+import '../config/api_config.dart';
 
 // Script de test pour vérifier l'API d'authentification
 void main() async {
@@ -71,19 +71,25 @@ Future<void> testAuthService() async {
     
     if (result.success) {
       print('✅ Connexion réussie!');
-      print('Utilisateur: ${result.user?['name']}');
-      print('Email: ${result.user?['email']}');
+      if (result.user != null) {
+        print('Utilisateur: ${result.user!.name}');
+        print('Email: ${result.user!.email}');
+      }
       
       // Vérifier le token
       final token = await authService.getToken();
-      print('Token généré: ${token?.substring(0, 20)}...');
+      if (token != null) {
+        print('Token généré: ${token.length > 20 ? '${token.substring(0, 20)}...' : token}');
+      } else {
+        print('Aucun token généré');
+      }
       
       // Vérifier l'état de connexion
       final isLoggedIn = await authService.isLoggedIn();
       print('État connecté: $isLoggedIn');
       
     } else {
-      print('❌ Échec de connexion: ${result.error}');
+      print('❌ Échec de connexion: ${result.message}');
     }
   } catch (e) {
     print('❌ Erreur lors du test: $e');
@@ -105,9 +111,12 @@ Future<void> testFallbackMode() async {
     
     if (result.success) {
       print('✅ Mode fallback fonctionne');
-      print('Utilisateur: ${result.user?['name']}');
+      if (result.user != null) {
+        print('Utilisateur: ${result.user!.name}');
+        print('Email: ${result.user!.email}');
+      }
     } else {
-      print('❌ Mode fallback échoué: ${result.error}');
+      print('❌ Mode fallback échoué: ${result.message}');
     }
   } catch (e) {
     print('❌ Erreur mode fallback: $e');
