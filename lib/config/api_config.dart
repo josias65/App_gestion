@@ -6,6 +6,7 @@ class ApiConfig {
   // URLs pour différents environnements
   static const String devBaseUrl = 'http://10.0.2.2:8000'; // Pour émulateur Android
   static const String iosBaseUrl = 'http://localhost:8000'; // Pour simulateur iOS
+  static const String localBaseUrl = 'http://localhost:8000'; // Backend local JSON Server
   static const String mockApiUrl = 'https://66f7c5c8b5d85f31a3418d8e.mockapi.io/api/v1';
   static const String prodBaseUrl = 'https://api.votredomaine.com'; // À remplacer par votre URL de production
   
@@ -18,11 +19,12 @@ class ApiConfig {
         return 'https://staging.votredomaine.com'; // URL de staging si nécessaire
       case 'mock':
         return mockApiUrl;
+      case 'local':
+        return localBaseUrl; // Backend local JSON Server
       case 'development':
       default:
-        // Pour le développement, on utilise l'URL de développement
-        // Note: Pour iOS, vous devrez peut-être utiliser iosBaseUrl
-        return devBaseUrl;
+        // Backend local par défaut pour le développement
+        return localBaseUrl;
     }
   }
 

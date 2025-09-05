@@ -1,0 +1,163 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Admin Système",
+      "email": "admin@appgestion.com",
+      "password": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+      "role": "admin",
+      "avatar": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Utilisateur Test",
+      "email": "user@test.com",
+      "password": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+      "role": "user",
+      "avatar": null,
+      "created_at": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "customers": [
+    {
+      "id": 1,
+      "name": "Client A",
+      "email": "clienta@example.com",
+      "phone": "0123456789",
+      "address": "123 rue de la Paix, Paris",
+      "created_at": "2024-01-20T09:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Client B",
+      "email": "clientb@example.com",
+      "phone": "0987654321",
+      "address": "456 avenue Victor Hugo, Lyon",
+      "created_at": "2024-01-22T14:30:00Z"
+    },
+    {
+      "name": "Test Client",
+      "email": "test@example.com",
+      "phone": "0123456789",
+      "address": "123 Test Street",
+      "id": 3
+    }
+  ],
+  "articles": [
+    {
+      "id": 1,
+      "name": "Produit 1",
+      "description": "Description du produit 1",
+      "price": 100,
+      "stock": 50,
+      "category": "Catégorie A",
+      "created_at": "2024-01-10T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Produit 2",
+      "description": "Description du produit 2",
+      "price": 250.5,
+      "stock": 25,
+      "category": "Catégorie B",
+      "created_at": "2024-01-12T16:45:00Z"
+    }
+  ],
+  "commande": [
+    {
+      "id": 1,
+      "customer_id": 1,
+      "total": 350,
+      "status": "pending",
+      "items": [
+        {
+          "article_id": 1,
+          "quantity": 2,
+          "unit_price": 100
+        },
+        {
+          "article_id": 2,
+          "quantity": 1,
+          "unit_price": 150
+        }
+      ],
+      "created_at": "2024-01-25T11:20:00Z"
+    }
+  ],
+  "devis": [
+    {
+      "id": 1,
+      "customer_id": 1,
+      "total": 500,
+      "status": "draft",
+      "valid_until": "2024-02-25T23:59:59Z",
+      "items": [
+        {
+          "article_id": 1,
+          "quantity": 3,
+          "unit_price": 100
+        },
+        {
+          "article_id": 2,
+          "quantity": 1,
+          "unit_price": 200
+        }
+      ],
+      "created_at": "2024-01-20T13:15:00Z"
+    }
+  ],
+  "facture": [
+    {
+      "id": 1,
+      "customer_id": 1,
+      "commande_id": 1,
+      "total": 350,
+      "status": "paid",
+      "due_date": "2024-02-25T00:00:00Z",
+      "created_at": "2024-01-26T09:30:00Z"
+    }
+  ],
+  "marches": [
+    {
+      "id": 1,
+      "title": "Marché public 1",
+      "description": "Description du marché public",
+      "budget": 10000,
+      "deadline": "2024-03-15T23:59:59Z",
+      "status": "open",
+      "created_at": "2024-01-18T10:00:00Z"
+    }
+  ],
+  "appels-offre": [
+    {
+      "id": 1,
+      "title": "Appel d'offre 1",
+      "description": "Description de l'appel d'offre",
+      "budget": 15000,
+      "deadline": "2024-04-01T23:59:59Z",
+      "status": "active",
+      "created_at": "2024-01-19T14:20:00Z"
+    }
+  ],
+  "recouvrements": [
+    {
+      "id": 1,
+      "facture_id": 1,
+      "amount": 350,
+      "status": "completed",
+      "recovery_date": "2024-01-30T12:00:00Z",
+      "created_at": "2024-01-27T08:45:00Z"
+    }
+  ],
+  "relances": [
+    {
+      "id": 1,
+      "facture_id": 1,
+      "type": "email",
+      "status": "sent",
+      "sent_date": "2024-01-28T15:30:00Z",
+      "created_at": "2024-01-28T15:30:00Z"
+    }
+  ]
+}
