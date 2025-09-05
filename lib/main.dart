@@ -51,6 +51,7 @@ import 'recouvrements/detail_recouvrement.dart';
 import 'recouvrements/edit_recouvrement.dart';
 import 'routes/app_routes.dart';
 import 'screens/simple_database_test_screen.dart';
+import 'login/test_backend_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -112,6 +113,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.addCommande: (context) => const AddCommandeScreen(),
         AppRoutes.factures: (context) => const FactureScreen(),
         AppRoutes.addFacture: (context) => const AddFactureScreen(),
+        AppRoutes.testBackend: (context) => const TestBackendScreen(),
         '/database-test': (context) => const SimpleDatabaseTestScreen(),
       },
       onGenerateRoute: (settings) {

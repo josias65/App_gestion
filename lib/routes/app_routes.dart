@@ -77,4 +77,7 @@ class AppRoutes {
   // Settings and Profile
   static const String profil = '/profil';
   static const String settings = '/settings';
+  
+  // Test Backend
+  static const String testBackend = '/test-backend';
 }

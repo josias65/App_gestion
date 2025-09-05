@@ -1,72 +1,92 @@
-import 'dart:async';
-import 'package:hive_flutter/hive_flutter.dart';
+// Import des dépendances nécessaires
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Import des modèles et services
 import 'database_service.dart';
+import '../models/article.dart';
+import '../models/client.dart';
+import '../models/commande.dart';
+import '../models/facture.dart';
+import '../models/devis.dart';
 import '../config/api_config.dart';
-// import '../models/models.dart'; // Commenté temporairement
 
 class DatabaseManager {
-  static DatabaseManager? _instance;
-  static AppDatabase? _database;
-  static Box? _settingsBox;
-  static Box? _cacheBox;
-  static Box? _offlineBox;
+  static final DatabaseManager _instance = DatabaseManager._();
+  static bool _isInitialized = false;
+  
+  // Boxes Hive
+  late final Box _settingsBox;
+  late final Box _cacheBox;
+  late final Box _offlineBox;
+  
+  // Getters pour les boxes
+  Box get settingsBox => _settingsBox;
+  Box get cacheBox => _cacheBox;
+  Box get offlineBox => _offlineBox;
 
   DatabaseManager._();
 
   static DatabaseManager get instance {
-    _instance ??= DatabaseManager._();
-    return _instance!;
+    if (!_isInitialized) {
+      throw Exception('DatabaseManager must be initialized first. Call initialize() before accessing instance.');
+    }
+    return _instance;
   }
+
+  // Instance de la base de données Drift
+  late final AppDatabase _database;
 
   // Initialisation de la base de données
   static Future<void> initialize() async {
     try {
-      // Initialiser Drift (SQLite)
-      _database = AppDatabase();
+      if (_isInitialized) return;
       
-      // Initialiser Hive pour le cache et les paramètres
-      await Hive.initFlutter();
+      // Initialiser Hive avec un répertoire de stockage
+      final appDocumentDir = await path_provider.getApplicationDocumentsDirectory();
+      final hivePath = path.join(appDocumentDir.path, 'hive');
+      await Directory(hivePath).create(recursive: true);
       
-      _settingsBox = await Hive.openBox('app_settings');
-      _cacheBox = await Hive.openBox('app_cache');
-      _offlineBox = await Hive.openBox('offline_data');
+      Hive.init(hivePath);
       
-      print('Base de données initialisée avec succès');
-    } catch (e) {
-      print('Erreur lors de l\'initialisation de la base de données: $e');
+      // Enregistrer les adaptateurs Hive
+      if (!Hive.isAdapterRegistered(1)) {
+        Hive.registerAdapter(ClientAdapter());
+      }
+      if (!Hive.isAdapterRegistered(2)) {
+        Hive.registerAdapter(ArticleAdapter());
+      }
+      
+      // Ouvrir les boîtes Hive
+      _instance._settingsBox = await Hive.openBox('app_settings');
+      _instance._cacheBox = await Hive.openBox('app_cache');
+      _instance._offlineBox = await Hive.openBox('offline_data');
+      
+      // Initialiser la base de données Drift
+      _instance._database = AppDatabase();
+      
+      _isInitialized = true;
+      debugPrint('Base de données initialisée avec succès');
+    } catch (e, stackTrace) {
+      debugPrint('Erreur lors de l\'initialisation de la base de données: $e');
+      debugPrint('Stack trace: $stackTrace');
       rethrow;
     }
   }
 
   // Getters pour accéder aux instances
-  static AppDatabase get database {
-    if (_database == null) {
-      throw Exception('Base de données non initialisée. Appelez DatabaseManager.initialize() d\'abord.');
-    }
-    return _database!;
+  AppDatabase get database {
+    _checkInitialized();
+    return _database;
   }
 
-  static Box get settingsBox {
-    if (_settingsBox == null) {
-      throw Exception('Hive non initialisé. Appelez DatabaseManager.initialize() d\'abord.');
-    }
-    return _settingsBox!;
-  }
-
-  static Box get cacheBox {
-    if (_cacheBox == null) {
-      throw Exception('Hive non initialisé. Appelez DatabaseManager.initialize() d\'abord.');
-    }
-    return _cacheBox!;
-  }
-
-  static Box get offlineBox {
-    if (_offlineBox == null) {
-      throw Exception('Hive non initialisé. Appelez DatabaseManager.initialize() d\'abord.');
-    }
-    return _offlineBox!;
-  }
+  // Suppression des getters statiques en conflit
+  // Utilisez DatabaseManager.instance.settingsBox au lieu de DatabaseManager.settingsBox
 
   // Méthodes de synchronisation
   static Future<void> syncAllData() async {
@@ -194,84 +214,138 @@ class DatabaseManager {
   }
 
   // Méthodes utilitaires pour les données
-  static Future<List<ClientsData>> getAllClients({bool forceRefresh = false}) async {
-    if (forceRefresh) {
-      await syncAllData();
+  static Future<List<Article>> getAllArticles({bool forceRefresh = false}) async {
+    try {
+      if (forceRefresh) {
+        await syncAllData();
+      }
+      // Récupérer les articles depuis Hive
+      final box = await Hive.openBox<Article>('articles');
+      return box.values.toList();
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des articles: $e');
+      rethrow;
     }
-    return await database.getAllClients();
   }
 
-  static Future<List<ArticlesData>> getAllArticles({bool forceRefresh = false}) async {
-    if (forceRefresh) {
-      await syncAllData();
+  static Future<List<Client>> getAllClients({bool forceRefresh = false}) async {
+    try {
+      if (forceRefresh) {
+        await syncAllData();
+      }
+      // Récupérer les clients depuis Hive
+      final box = await Hive.openBox<Client>('clients');
+      return box.values.toList();
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des clients: $e');
+      rethrow;
     }
-    return await database.getAllArticles();
   }
 
   static Future<List<CommandesData>> getAllCommandes({bool forceRefresh = false}) async {
-    if (forceRefresh) {
-      await syncAllData();
+    try {
+      if (forceRefresh) {
+        await syncAllData();
+      }
+      // Utiliser la méthode getAllCommandes de AppDatabase
+      return await database.getAllCommandes();
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des commandes: $e');
+      rethrow;
     }
-    return await database.getAllCommandes();
   }
 
   static Future<List<FacturesData>> getAllFactures({bool forceRefresh = false}) async {
-    if (forceRefresh) {
-      await syncAllData();
+    try {
+      if (forceRefresh) {
+        await syncAllData();
+      }
+      // Utiliser la méthode getAllFactures de AppDatabase
+      return await database.getAllFactures();
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des factures: $e');
+      rethrow;
     }
-    return await database.getAllFactures();
   }
 
   static Future<List<DevisData>> getAllDevis({bool forceRefresh = false}) async {
-    if (forceRefresh) {
-      await syncAllData();
+    try {
+      if (forceRefresh) {
+        await syncAllData();
+      }
+      // Utiliser la méthode getAllDevis de AppDatabase
+      return await database.getAllDevis();
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des devis: $e');
+      rethrow;
     }
-    return await database.getAllDevis();
   }
 
   // Méthodes de recherche
-  static Future<List<ClientsData>> searchClients(String query) async {
-    final clients = await database.getAllClients();
-    return clients.where((client) => 
-      client.name.toLowerCase().contains(query.toLowerCase()) ||
-      client.email.toLowerCase().contains(query.toLowerCase())
-    ).toList();
+  static Future<List<ArticlesData>> searchArticles(String query) async {
+    try {
+      final allArticles = await database.getAllArticles();
+      final queryLower = query.toLowerCase();
+      
+      return allArticles.where((article) => 
+(article.name?.toLowerCase().contains(queryLower) ?? false) ||
+        (article.description?.toLowerCase().contains(queryLower) ?? false)
+      ).toList();
+    } catch (e) {
+      debugPrint('Erreur lors de la recherche d\'articles: $e');
+      rethrow;
+    }
   }
 
-  static Future<List<ArticlesData>> searchArticles(String query) async {
-    final articles = await database.getAllArticles();
-    return articles.where((article) => 
-      article.name.toLowerCase().contains(query.toLowerCase()) ||
-      (article.description?.toLowerCase().contains(query.toLowerCase()) ?? false)
-    ).toList();
+  static Future<List<ClientsData>> searchClients(String query) async {
+    try {
+      final allClients = await database.getAllClients();
+      final queryLower = query.toLowerCase();
+      
+      return allClients.where((client) => 
+        (client.name?.toLowerCase().contains(queryLower) ?? false) ||
+        (client.email?.toLowerCase().contains(queryLower) ?? false) ||
+        (client.phone?.toLowerCase().contains(queryLower) ?? false)
+      ).toList();
+    } catch (e) {
+      debugPrint('Erreur lors de la recherche de clients: $e');
+      rethrow;
+    }
+  }
+
   }
 
   // Méthodes de statistiques
   static Future<Map<String, dynamic>> getStatistics() async {
-    final clients = await database.getAllClients();
-    final articles = await database.getAllArticles();
-    final commandes = await database.getAllCommandes();
-    final factures = await database.getAllFactures();
-    final devis = await database.getAllDevis();
+    try {
+      final clients = await database.getAllClients();
+      final articles = await database.getAllArticles();
+      final commandes = await database.getAllCommandes();
+      final factures = await database.getAllFactures();
+      final devis = await database.getAllDevis();
 
-    double totalFactures = 0;
-    double totalPaid = 0;
-    for (var facture in factures) {
-      totalFactures += facture.total;
-      totalPaid += facture.paid;
+      double totalFactures = 0;
+      double totalPaid = 0;
+      for (var facture in factures) {
+        totalFactures += facture.total;
+        totalPaid += facture.paid;
+      }
+
+      return {
+        'total_clients': clients.length,
+        'total_articles': articles.length,
+        'total_commandes': commandes.length,
+        'total_factures': factures.length,
+        'total_devis': devis.length,
+        'total_revenue': totalFactures,
+        'total_paid': totalPaid,
+        'pending_amount': totalFactures - totalPaid,
+        'last_sync': getLastSyncTime()?.toIso8601String(),
+      };
+    } catch (e) {
+      debugPrint('Erreur lors du calcul des statistiques: $e');
+      rethrow;
     }
-
-    return {
-      'total_clients': clients.length,
-      'total_articles': articles.length,
-      'total_commandes': commandes.length,
-      'total_factures': factures.length,
-      'total_devis': devis.length,
-      'total_revenue': totalFactures,
-      'total_paid': totalPaid,
-      'pending_amount': totalFactures - totalPaid,
-      'last_sync': getLastSyncTime()?.toIso8601String(),
-    };
   }
 
   // Nettoyage et maintenance
@@ -300,16 +374,23 @@ class DatabaseManager {
     }
   }
 
-  // Fermer les connexions
+  // Fermeture de la base de données
   static Future<void> close() async {
-    try {
-      await _database?.close();
-      await _settingsBox?.close();
-      await _cacheBox?.close();
-      await _offlineBox?.close();
-      print('Connexions à la base de données fermées');
-    } catch (e) {
-      print('Erreur lors de la fermeture: $e');
+    // La méthode close n'existe pas directement sur AppDatabase
+    // On peut simplement libérer la référence
+    _database = null;
+    await _settingsBox?.close();
+    _settingsBox = null;
+    await _cacheBox?.close();
+    _cacheBox = null;
+    await _offlineBox?.close();
+    _offlineBox = null;
+  }
+
+  // Méthode utilitaire pour vérifier l'initialisation
+  static void _checkInitialized() {
+    if (!_isInitialized) {
+      throw Exception('DatabaseManager must be initialized first. Call initialize() before using any methods.');
     }
   }
 }

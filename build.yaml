@@ -1,9 +1,9 @@
 targets:
   $default:
     builders:
+      # Configuration pour Drift
       drift_dev:
         options:
-          # Configuration pour la génération de code Drift
           generate_connect_constructor: true
           generate_connect_constructor_on_queries: true
           generate_connect_constructor_on_database: true
@@ -11,6 +11,11 @@ targets:
           generate_connect_constructor_on_views: true
           generate_connect_constructor_on_triggers: true
           generate_connect_constructor_on_indexes: true
-          generate_connect_constructor_on_views: true
-          generate_connect_constructor_on_triggers: true
-          generate_connect_constructor_on_indexes: true
+      
+      # Configuration pour Hive
+      hive_generator|hive_generator:
+        generate_containers: true
+        test: false
+      source_gen|combining_builder:
+        ignore_for_file:
+          - '**/*.g.dart'

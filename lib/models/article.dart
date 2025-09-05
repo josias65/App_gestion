@@ -1,13 +1,38 @@
-class Article {
+import 'package:hive/hive.dart';
+
+part 'article.g.dart';
+
+@HiveType(typeId: 2)
+class Article extends HiveObject {
+  @HiveField(0)
   final String id;
+  
+  @HiveField(1)
   final String code;
+  
+  @HiveField(2)
   final String name;
+  
+  @HiveField(3)
   final String description;
+  
+  @HiveField(4)
   final double price;
+  
+  @HiveField(5)
   final String? unit;
-  final int stockQuantity;
+  
+  @HiveField(6)
+  int stockQuantity;
+  
+  @HiveField(7)
   final String? category;
+  
+  @HiveField(8)
+  @HiveField(8)
   final DateTime createdAt;
+  
+  @HiveField(9)
   final DateTime updatedAt;
 
   Article({
@@ -17,11 +42,13 @@ class Article {
     required this.description,
     required this.price,
     this.unit,
-    required this.stockQuantity,
+    this.stockQuantity = 0,
     this.category,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : 
+    createdAt = createdAt ?? DateTime.now(),
+    updatedAt = updatedAt ?? DateTime.now();
 
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
@@ -31,9 +58,9 @@ class Article {
       description: json['description'] as String,
       price: (json['price'] as num).toDouble(),
       unit: json['unit'] as String?,
-      stockQuantity: json['stock_quantity'] as int,
+      stockQuantity: json['stockQuantity'] as int? ?? 0,
       category: json['category'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
   }

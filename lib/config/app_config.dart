@@ -20,7 +20,7 @@ class AppConfig {
   static const bool enableDarkMode = true;
   
   // Configuration des données de test
-  static const bool useMockData = true; // Mettre à false pour utiliser l'API réelle
+  static const bool useMockData = false; // Mettre à false pour utiliser l'API réelle
   
   // Configuration du cache
   static const int cacheDurationInMinutes = 15;
