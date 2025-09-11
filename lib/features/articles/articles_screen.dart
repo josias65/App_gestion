@@ -29,7 +29,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
 
     try {
       final response = await _articleService.getArticles();
-      
+
       if (response.success && response.data != null) {
         setState(() {
           _articles = response.data!;
@@ -56,10 +56,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
       appBar: AppBar(
         title: const Text('Liste des Articles'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadArticles,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadArticles),
         ],
       ),
       body: _buildBody(),
@@ -162,10 +159,12 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                 quantity: int.tryParse(quantityController.text) ?? 0,
                 category: '',
                 unit: 'unité',
+                code: '',
+                description: '',
               );
-              
+
               final response = await _articleService.createArticle(article);
-              
+
               if (mounted) {
                 Navigator.pop(context);
                 if (response.success) {
@@ -175,7 +174,11 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(response.message ?? 'Erreur lors de l\'ajout')),
+                    SnackBar(
+                      content: Text(
+                        response.message ?? 'Erreur lors de l\'ajout',
+                      ),
+                    ),
                   );
                 }
               }
@@ -189,8 +192,12 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
 
   void _showEditArticleDialog(Article article) {
     final nameController = TextEditingController(text: article.name);
-    final priceController = TextEditingController(text: article.price.toString());
-    final quantityController = TextEditingController(text: article.quantity.toString());
+    final priceController = TextEditingController(
+      text: article.price.toString(),
+    );
+    final quantityController = TextEditingController(
+      text: article.quantity.toString(),
+    );
 
     showDialog(
       context: context,
@@ -227,19 +234,28 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                 price: double.tryParse(priceController.text) ?? 0,
                 quantity: int.tryParse(quantityController.text) ?? 0,
               );
-              
-              final response = await _articleService.updateArticle(article.id, updatedArticle);
-              
+
+              final response = await _articleService.updateArticle(
+                article.id,
+                updatedArticle,
+              );
+
               if (mounted) {
                 Navigator.pop(context);
                 if (response.success) {
                   _loadArticles();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Article mis à jour avec succès')),
+                    const SnackBar(
+                      content: Text('Article mis à jour avec succès'),
+                    ),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(response.message ?? 'Erreur lors de la mise à jour')),
+                    SnackBar(
+                      content: Text(
+                        response.message ?? 'Erreur lors de la mise à jour',
+                      ),
+                    ),
                   );
                 }
               }
@@ -272,7 +288,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
 
     if (confirmed == true) {
       final response = await _articleService.deleteArticle(id);
-      
+
       if (mounted) {
         if (response.success) {
           _loadArticles();
@@ -281,7 +297,11 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response.message ?? 'Erreur lors de la suppression')),
+            SnackBar(
+              content: Text(
+                response.message ?? 'Erreur lors de la suppression',
+              ),
+            ),
           );
         }
       }

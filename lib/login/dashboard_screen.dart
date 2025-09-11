@@ -3,12 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:appgestion/routes/app_routes.dart';
 import '../providers/auth_provider.dart';
 import '../constants/app_colors.dart';
-// ignore: unused_import
-import '../services/database_service.dart';
-// ignore: unused_import
-import '../services/api_client.dart';
-// ignore: unused_import
-import '../services/connectivity_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -59,7 +53,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
     );
 
-    // Démarrer les animations
     _fadeController.forward();
     _slideController.forward();
 
@@ -80,7 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Scaffold(
       backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
       appBar: AppBar(
@@ -96,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         backgroundColor: AppColors.primaryColor,
         elevation: 0,
         flexibleSpace: Container(
-            decoration: BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -108,19 +101,12 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ),
         actions: [
-          AnimatedScale(
-            scale: 1.0,
-            duration: const Duration(milliseconds: 200),
-            child: IconButton(
+          IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
-              onPressed: () => _showNotifications(context),
+            onPressed: () => _showNotifications(context),
             tooltip: 'Notifications',
           ),
-          ),
-          AnimatedScale(
-            scale: 1.0,
-            duration: const Duration(milliseconds: 200),
-            child: IconButton(
+          IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
               final authProvider = Provider.of<AuthProvider>(
@@ -130,7 +116,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               await authProvider.forceLogout();
             },
             tooltip: 'Déconnexion',
-          ),
           ),
         ],
       ),
@@ -142,21 +127,16 @@ class _DashboardScreenState extends State<DashboardScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // En-tête avec animation de slide
               SlideTransition(
                 position: _slideAnimation,
                 child: _buildHeader(context, isDark),
               ),
               const SizedBox(height: 24),
-
-              // Cartes de statistiques avec animation d'échelle
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: _buildStatsGrid(context, isDark),
               ),
               const SizedBox(height: 24),
-
-              // Actions rapides avec animation délayée
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 800),
@@ -170,8 +150,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                 child: _buildQuickActions(context, isDark),
               ),
               const SizedBox(height: 24),
-
-              // Activité récente avec animation délayée
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 1000),
@@ -220,7 +198,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     color: Colors.black.withOpacity(0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
-              ),
+                  ),
                 ],
               ),
               child: const Column(
@@ -229,14 +207,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Hero(
                     tag: 'app_logo',
                     child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
-                    child: Icon(
+                      radius: 30,
+                      backgroundColor: Colors.white,
+                      child: Icon(
                         Icons.business,
-                      size: 40,
-                      color: AppColors.primaryColor,
+                        size: 40,
+                        color: AppColors.primaryColor,
+                      ),
                     ),
-                  ),
                   ),
                   SizedBox(height: 12),
                   Text(
@@ -296,6 +274,24 @@ class _DashboardScreenState extends State<DashboardScreen>
               'Stocks',
               context,
               AppRoutes.stock,
+            ),
+            _buildDrawerItem(
+              Icons.assignment,
+              'Appels d\'Offres',
+              context,
+              AppRoutes.appelsOffre,
+            ),
+            _buildDrawerItem(
+              Icons.account_balance_wallet,
+              'Recouvrements',
+              context,
+              AppRoutes.recouvrements,
+            ),
+            _buildDrawerItem(
+              Icons.notification_important,
+              'Relances',
+              context,
+              AppRoutes.relances,
             ),
             const Divider(height: 32),
             _buildDrawerItem(
@@ -369,21 +365,21 @@ class _DashboardScreenState extends State<DashboardScreen>
           scale: 0.95 + (0.05 * value),
           child: Container(
             padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
                   AppColors.primaryColor.withOpacity(0.15),
                   AppColors.primaryColor.withOpacity(0.08),
                   AppColors.primaryColor.withOpacity(0.03),
-          ],
-        ),
+                ],
+              ),
               borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.primaryColor.withOpacity(0.2),
-          width: 1,
-        ),
+              border: Border.all(
+                color: AppColors.primaryColor.withOpacity(0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.primaryColor.withOpacity(0.1),
@@ -392,13 +388,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                   offset: const Offset(0, 8),
                 ),
               ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            child: Row(
               children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       ShaderMask(
                         shaderCallback: (bounds) => LinearGradient(
                           colors: [
@@ -408,19 +404,19 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ).createShader(bounds),
                         child: const Text(
                           'Bonjour ! 👋',
-                  style: TextStyle(
+                          style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                           ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
                         'Bienvenue sur votre tableau de bord',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -435,14 +431,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                     return Transform.rotate(
                       angle: rotateValue * 6.28,
                       child: Container(
-                  decoration: BoxDecoration(
+                        decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
                               AppColors.primaryColor.withOpacity(0.2),
                               AppColors.primaryColor.withOpacity(0.1),
                             ],
                           ),
-                    borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primaryColor.withOpacity(0.3),
@@ -480,13 +476,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                             ),
                           ),
                         ),
-                  ),
-                );
-              },
-          ),
-        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-      ),
+          ),
         );
       },
     );
@@ -684,18 +680,20 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ),
                   ),
                   const SizedBox(width: 12),
-              Text(
-                "Activité Récente",
-                style: TextStyle(
+                  Text(
+                    "Activité Récente",
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : Colors.grey[800],
-                ),
+                      color: isDark ? Colors.white : Colors.grey[800],
+                    ),
                   ),
                 ],
               ),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  // Ajoute ici la navigation vers la page d'activité complète si besoin
+                },
                 icon: Icon(
                   Icons.arrow_forward,
                   color: AppColors.primaryColor,
@@ -781,22 +779,22 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [color.withOpacity(0.08), color.withOpacity(0.03)],
                 ),
-        borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: color.withOpacity(0.2), width: 1),
-        boxShadow: [
-            BoxShadow(
+                boxShadow: [
+                  BoxShadow(
                     color: color.withOpacity(0.1),
                     blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-        ],
-      ),
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
                   Hero(
@@ -824,17 +822,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
                           title,
-            style: TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.grey[800],
-            ),
-          ),
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.grey[800],
+                          ),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
@@ -862,10 +860,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                         color: isDark ? Colors.grey[400] : Colors.grey[500],
                         fontWeight: FontWeight.w500,
                       ),
-                ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
             ),
           ),
         );
@@ -880,7 +878,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
-      decoration: BoxDecoration(
+        decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
               ? Colors.grey[850]
               : Colors.white,
@@ -907,11 +905,11 @@ class _DashboardScreenState extends State<DashboardScreen>
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -929,19 +927,19 @@ class _DashboardScreenState extends State<DashboardScreen>
                             size: 20,
                           ),
                         ),
-              const SizedBox(width: 12),
-              Text(
+                        const SizedBox(width: 12),
+                        Text(
                           'Notifications',
-                style: TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color:
                                 Theme.of(context).brightness == Brightness.dark
                                 ? Colors.white
                                 : Colors.grey[800],
-                ),
-              ),
-            ],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     Expanded(
@@ -954,8 +952,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                             subtitle:
                                 'Toutes les fonctionnalités sont disponibles',
                             time: 'Maintenant',
-          ),
-          const SizedBox(height: 12),
+                          ),
+                          const SizedBox(height: 12),
                           _buildNotificationItem(
                             icon: Icons.check_circle,
                             color: Colors.green,
@@ -1047,7 +1045,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 }
 
-// Widget animé pour les cartes de statistiques
 class _AnimatedStatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -1068,7 +1065,7 @@ class _AnimatedStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 800 + delay),
@@ -1082,29 +1079,29 @@ class _AnimatedStatCard extends StatelessWidget {
               opacity: value,
               child: Container(
                 padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : Colors.white,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[850] : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: color.withOpacity(0.1), width: 2),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
+                  boxShadow: [
+                    if (!isDark)
+                      BoxShadow(
                         color: color.withOpacity(0.15),
                         spreadRadius: 0,
                         blurRadius: 20,
                         offset: const Offset(0, 8),
-            ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
+                      ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
                           padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
+                          decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
                                 color.withOpacity(0.2),
@@ -1121,13 +1118,13 @@ class _AnimatedStatCard extends StatelessWidget {
                             ],
                           ),
                           child: Icon(icon, color: color, size: 24),
-              ),
-              Container(
+                        ),
+                        Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 4,
                           ),
-                decoration: BoxDecoration(
+                          decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
                                 Colors.green.withOpacity(0.2),
@@ -1138,15 +1135,15 @@ class _AnimatedStatCard extends StatelessWidget {
                           ),
                           child: const Text(
                             '+12%',
-                  style: TextStyle(
+                            style: TextStyle(
                               color: Colors.green,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     ShaderMask(
                       shaderCallback: (bounds) => LinearGradient(
@@ -1162,37 +1159,36 @@ class _AnimatedStatCard extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
                         fontSize: 11,
-              color: isDark ? Colors.grey[500] : Colors.grey[500],
-            ),
-          ),
-        ],
+                        color: isDark ? Colors.grey[500] : Colors.grey[500],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-      ),
+          ),
         );
       },
     );
   }
 }
 
-// Widget animé pour les boutons d'action rapide
 class _AnimatedQuickActionButton extends StatefulWidget {
   final IconData icon;
   final String label;
@@ -1240,7 +1236,7 @@ class _AnimatedQuickActionButtonState extends State<_AnimatedQuickActionButton>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 600 + widget.delay),
@@ -1272,7 +1268,7 @@ class _AnimatedQuickActionButtonState extends State<_AnimatedQuickActionButton>
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -1282,7 +1278,7 @@ class _AnimatedQuickActionButtonState extends State<_AnimatedQuickActionButton>
                           ],
                         ),
                         borderRadius: BorderRadius.circular(16),
-          border: Border.all(
+                        border: Border.all(
                           color: widget.color.withOpacity(0.3),
                           width: _isPressed ? 2 : 1,
                         ),
@@ -1295,10 +1291,10 @@ class _AnimatedQuickActionButtonState extends State<_AnimatedQuickActionButton>
                             offset: Offset(0, _isPressed ? 6 : 4),
                           ),
                         ],
-        ),
-        child: Column(
+                      ),
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+                        children: [
                           TweenAnimationBuilder<double>(
                             tween: Tween(begin: 0.0, end: 1.0),
                             duration: const Duration(milliseconds: 800),
@@ -1322,30 +1318,27 @@ class _AnimatedQuickActionButtonState extends State<_AnimatedQuickActionButton>
                             },
                           ),
                           const SizedBox(height: 12),
-            Text(
+                          Text(
                             widget.label,
-              style: TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.grey[800],
-              ),
-              textAlign: TextAlign.center,
+                              color: isDark ? Colors.white : Colors.grey[800],
+                            ),
+                            textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-            ),
-          ],
+                          ),
+                        ],
                       ),
-        ),
-      ),
-    );
+                    ),
+                  ),
+                );
               },
             ),
           ),
         );
       },
     );
-  }
-}
-
   }
 }

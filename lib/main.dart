@@ -22,7 +22,7 @@ import 'login/dashboard_screen.dart'
         StockListScreen,
         StockDetailScreen,
         StockEditScreen;
-import 'login/settings.dart';
+import 'login/settings_simple.dart';
 import 'login/mot_de_passe.dart';
 import 'profil/profil_screen.dart';
 import 'client/list_screen.dart';
@@ -143,7 +143,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Gestion Commerciale',
-      debugShowCheckedModeBanner: false,
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -165,11 +165,12 @@ class MyApp extends StatelessWidget {
         routes: {
           AppRoutes.login: (context) => const LoginScreen(),
           AppRoutes.dashboard: (context) => const DashboardScreen(),
-          AppRoutes.settings: (context) => const SettingsScreen(),
+          AppRoutes.settings: (context) => const SettingsScreenSimple(),
           AppRoutes.forgotPassword: (context) => const ForgotPasswordScreen(),
           AppRoutes.profil: (context) => const ProfileScreen(),
           AppRoutes.clients: (context) => const ClientListScreen(),
           AppRoutes.addClient: (context) => const AddClientScreen(),
+          AppRoutes.appelsOffre: (context) => const AppelsOffresScreen(),
           AppRoutes.listAppelsOffres: (context) => const AppelsOffresScreen(),
           AppRoutes.devis: (context) => const DevisListScreen(),
           AppRoutes.createDevis: (context) => const CreateDevisScreen(),
@@ -218,11 +219,7 @@ class MyApp extends StatelessWidget {
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
                 return MaterialPageRoute(
-                  builder: (_) => SoumissionScreen(
-                    appel: args['appel'] ?? {},
-                    marcheId: args['marcheId'] ?? '',
-                    appelId: args['appelId'] ?? '',
-                  ),
+                  builder: (_) => SoumissionScreen(marche: args),
                 );
               }
               break;
@@ -279,12 +276,48 @@ class MyApp extends StatelessWidget {
               }
               if (devis != null) {
                 return MaterialPageRoute(
-                  builder: (_) => DevisDetailScreen(devis: devis!),
+                  builder: (_) => DevisDetailScreen(devis: devis),
                 );
               }
               break;
               
-            // --- Relances ---
+            // --- Commande ---
+            case AppRoutes.detailCommande:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => DetailCommandeScreen(commande: args),
+                );
+              }
+              break;
+            case AppRoutes.editCommande:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute<Map<String, dynamic>>(
+                  builder: (_) => EditCommandeScreen(commandeToEdit: args),
+                );
+              }
+              break;
+              
+            // --- Facture ---
+            case AppRoutes.detailFacture:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => DetailFactureScreen(facture: args),
+                );
+              }
+              break;
+            case AppRoutes.editFacture:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute<Map<String, dynamic>>(
+                  builder: (_) => EditFactureScreen(factureToEdit: args),
+                );
+              }
+              break;
+              
+            // --- Relance ---
             case AppRoutes.detailRelance:
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
@@ -293,21 +326,20 @@ class MyApp extends StatelessWidget {
                 );
               }
               break;
+            case AppRoutes.addRelance:
+              return MaterialPageRoute<Map<String, dynamic>>(
+                builder: (_) => const AddRelanceScreen(),
+              );
             case AppRoutes.editRelance:
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
-                return MaterialPageRoute(
-                  builder: (_) => EditRelanceScreen(relance: args),
+                return MaterialPageRoute<Map<String, dynamic>>(
+                  builder: (_) => EditRelanceScreen(relanceToEdit: args),
                 );
               }
               break;
-            case AppRoutes.addRelance:
-              final relanceToEdit = settings.arguments as Map<String, dynamic>?;
-              return MaterialPageRoute(
-                builder: (_) => AddRelanceScreen(relanceToEdit: relanceToEdit),
-              );
               
-            // --- Recouvrements ---
+            // --- Recouvrement ---
             case AppRoutes.detailRecouvrement:
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
@@ -319,60 +351,29 @@ class MyApp extends StatelessWidget {
             case AppRoutes.editRecouvrement:
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
-                return MaterialPageRoute(
-                  builder: (_) => EditRecouvrementScreen(recouvrement: args),
+                return MaterialPageRoute<Map<String, dynamic>>(
+                  builder: (_) => EditRecouvrementScreen(recouvrementToEdit: args),
                 );
               }
               break;
               
-            // --- Commandes ---
-            case AppRoutes.detailCommande:
-              final args = settings.arguments as Map<String, dynamic>?;
-              if (args != null) {
-                return MaterialPageRoute(
-                  builder: (_) => DetailCommandeScreen(
-                    commande: args,
-                    commandeId: args['id']?.toString() ?? '',
-                  ),
-                );
-              }
-              break;
-            case AppRoutes.editCommande:
-              final args = settings.arguments as Map<String, dynamic>?;
-              if (args != null) {
-                return MaterialPageRoute(
-                  builder: (_) => EditCommandeScreen(
-                    commandeId: args['id']?.toString() ?? '',
-                  ),
-                );
-              }
-              break;
+            // --- Test Backend ---
+            case AppRoutes.testBackend:
+              return MaterialPageRoute(
+                builder: (_) => const TestBackendScreen(),
+              );
               
-            // --- Factures ---
-            case AppRoutes.detailFacture:
-              final args = settings.arguments as Map<String, dynamic>?;
-              if (args != null) {
-                return MaterialPageRoute(
-                  builder: (_) => DetailFactureScreen(
-                    factureId: args['id']?.toString() ?? '',
-                  ),
-                );
-              }
-              break;
-            case AppRoutes.editFacture:
-              final args = settings.arguments as Map<String, dynamic>?;
-              if (args != null) {
-                return MaterialPageRoute(
-                  builder: (_) => EditFactureScreen(factureId: args['id']?.toString() ?? ''),
-                );
-              }
-              break;
-              
-            // --- Tests ---
-            case '/service-test':
-              return MaterialPageRoute(builder: (_) => const ServiceTestScreen());
+            // --- Test Database ---
+            case AppRoutes.testDatabase:
+              return MaterialPageRoute(
+                builder: (_) => const ServiceTestScreen(),
+              );
           }
-          return null;
+          
+          // Route par défaut
+          return MaterialPageRoute(
+            builder: (_) => const LoginScreen(),
+          );
         },
       ),
     );

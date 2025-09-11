@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../models/user_model.dart';
-import '../services/auth_service_new.dart';
+import '../services/auth_service.dart';
 
 /// Fournisseur d'état pour la gestion de l'authentification
 /// Gère l'état de l'authentification et expose des méthodes pour interagir avec le service d'authentification

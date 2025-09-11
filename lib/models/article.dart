@@ -7,7 +7,7 @@ class Article {
   final String? unit;
   int stockQuantity;
   final String? category;
-  
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -22,9 +22,9 @@ class Article {
     this.category,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : 
-    createdAt = createdAt ?? DateTime.now(),
-    updatedAt = updatedAt ?? DateTime.now();
+    required int quantity,
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
@@ -36,10 +36,15 @@ class Article {
       unit: json['unit'] as String?,
       stockQuantity: json['stockQuantity'] as int? ?? 0,
       category: json['category'] as String?,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      quantity: json['quantity'] as int? ?? 0,
     );
   }
+
+  get quantity => null;
 
   Map<String, dynamic> toJson() {
     return {
@@ -55,4 +60,10 @@ class Article {
       'updated_at': updatedAt.toIso8601String(),
     };
   }
+
+  copyWith({
+    required String name,
+    required double price,
+    required int quantity,
+  }) {}
 }

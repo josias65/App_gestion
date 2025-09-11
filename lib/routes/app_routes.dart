@@ -27,7 +27,8 @@ class AppRoutes {
   static String getStockDetail(String id) => '$stockDetail/$id';
   static String getStockEdit(String id) => '$stockEdit/$id';
 
-  // Tenders (Appels d’Offres)
+  // Tenders (Appels d'Offres)
+  static const String appelsOffre = '/appels-offre';
   static const String listAppelsOffres = '/AppelsOffresScreen';
   static const String addAppelOffre = '/appelcreate';
   static const String detailAppelOffre = '/appeldetail';
