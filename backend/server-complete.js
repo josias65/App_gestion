@@ -59,6 +59,13 @@ async function initServer() {
     app.use('/article', require('./routes/products'));
     app.use('/appels-offre', require('./routes/appels-offre'));
     app.use('/marches', require('./routes/marches'));
+    app.use('/recouvrements', require('./routes/recouvrements'));
+    app.use('/relances', require('./routes/relances'));
+    app.use('/devis', require('./routes/devis'));
+    app.use('/proforma', require('./routes/proforma'));
+    app.use('/livraison', require('./routes/livraisons'));
+    app.use('/dashboard', require('./routes/dashboard'));
+    app.use('/api/settings', require('./routes/settings'));
 
     // Route de santé
     app.get('/health', (req, res) => {

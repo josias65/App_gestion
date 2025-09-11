@@ -212,7 +212,7 @@ class AuthService {
         body: jsonEncode({
           'email': email.trim(),
           'password': password,
-          'device_name': '${AppConfig.appName} ${AppConfig.version}',
+          'device_name': '${AppConfig.appName} ${AppConfig.appVersion}',
         }),
       ).timeout(
         const Duration(seconds: 30),

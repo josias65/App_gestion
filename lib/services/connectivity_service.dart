@@ -1,149 +1,130 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_config.dart';
+import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'api_client.dart';
 
+/// Service de gestion de la connectivité réseau
 class ConnectivityService {
-  static const String baseUrl = ApiConfig.devBaseUrl;
+  static ConnectivityService? _instance;
+  static Connectivity? _connectivity;
   
-  /// Teste la connectivité au backend
-  static Future<Map<String, dynamic>> testConnection() async {
+  ConnectivityService._() {
+    _connectivity = Connectivity();
+  }
+  
+  static ConnectivityService get instance {
+    _instance ??= ConnectivityService._();
+    return _instance!;
+  }
+  
+  // Vérifier la connectivité Internet
+  Future<bool> isConnected() async {
     try {
-      print('🔍 Test de connectivité au backend...');
-      
-      // Test de santé du serveur
-      final response = await http.get(
-        Uri.parse('$baseUrl/health'),
-        headers: {'Content-Type': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
-      
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {
-          'success': true,
-          'message': 'Backend accessible',
-          'data': data,
-        };
-      } else {
-        return {
-          'success': false,
-          'message': 'Backend inaccessible (${response.statusCode})',
-          'data': null,
-        };
-      }
+      final connectivityResult = await _connectivity!.checkConnectivity();
+      return connectivityResult != ConnectivityResult.none;
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur de connexion: $e',
-        'data': null,
-      };
+      print('Erreur lors de la vérification de la connectivité: $e');
+      return false;
     }
   }
   
-  /// Teste l'authentification
-  static Future<Map<String, dynamic>> testAuthentication() async {
-    try {
-      print('🔐 Test d\'authentification...');
-      
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': 'test@example.com',
-          'password': 'password123',
-        }),
-      ).timeout(const Duration(seconds: 10));
-      
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {
-          'success': true,
-          'message': 'Authentification réussie',
-          'data': data,
-        };
-      } else {
-        final errorData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': 'Échec de l\'authentification: ${errorData['message']}',
-          'data': null,
-        };
-      }
-    } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur d\'authentification: $e',
-        'data': null,
-      };
-    }
-  }
-  
-  /// Teste tous les endpoints principaux
-  static Future<Map<String, dynamic>> testAllEndpoints() async {
-    try {
-      print('📊 Test de tous les endpoints...');
-      
-      // D'abord, obtenir un token
-      final authResult = await testAuthentication();
-      if (!authResult['success']) {
-        return authResult;
-      }
-      
-      final token = authResult['data']['token'];
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      };
-      
-      final endpoints = [
-        {'name': 'Clients', 'url': '/customers'},
-        {'name': 'Commandes', 'url': '/commande'},
-        {'name': 'Articles', 'url': '/article'},
-        {'name': 'Factures', 'url': '/facture'},
-        {'name': 'Appels d\'offre', 'url': '/appels-offre'},
-        {'name': 'Marchés', 'url': '/marches'},
-      ];
-      
-      final results = <String, dynamic>{};
-      
-      for (final endpoint in endpoints) {
-        try {
-          final response = await http.get(
-            Uri.parse('$baseUrl${endpoint['url']}'),
-            headers: headers,
-          ).timeout(const Duration(seconds: 5));
-          
-          results[endpoint['name']] = {
-            'success': response.statusCode == 200,
-            'statusCode': response.statusCode,
-            'message': response.statusCode == 200 ? 'OK' : 'Erreur',
-          };
-        } catch (e) {
-          results[endpoint['name']] = {
-            'success': false,
-            'statusCode': 0,
-            'message': 'Erreur: $e',
-          };
-        }
-      }
-      
-      return {
-        'success': true,
-        'message': 'Tests des endpoints terminés',
-        'data': results,
-      };
-      
-    } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur lors des tests: $e',
-        'data': null,
-      };
-    }
-  }
-  
-  /// Vérifie si le backend est prêt
+  // Vérifier si le backend est accessible
   static Future<bool> isBackendReady() async {
-    final result = await testConnection();
-    return result['success'];
+    try {
+      final apiClient = ApiClient.instance;
+      final response = await apiClient.checkHealth();
+      return response.isSuccess;
+    } catch (e) {
+      print('Backend non accessible: $e');
+      return false;
+    }
   }
+  
+  // Stream de changements de connectivité
+  Stream<ConnectivityResult> get connectivityStream => _connectivity!.onConnectivityChanged;
+  
+  // Vérifier la connectivité avec un timeout
+  Future<bool> isConnectedWithTimeout({Duration timeout = const Duration(seconds: 5)}) async {
+    try {
+      final result = await _connectivity!.checkConnectivity().timeout(timeout);
+      return result != ConnectivityResult.none;
+    } catch (e) {
+      print('Timeout de connectivité: $e');
+      return false;
+    }
+  }
+  
+  // Obtenir le type de connexion
+  Future<String> getConnectionType() async {
+    try {
+      final connectivityResult = await _connectivity!.checkConnectivity();
+      
+      switch (connectivityResult) {
+        case ConnectivityResult.wifi:
+          return 'WiFi';
+        case ConnectivityResult.mobile:
+          return 'Mobile';
+        case ConnectivityResult.ethernet:
+          return 'Ethernet';
+        case ConnectivityResult.bluetooth:
+          return 'Bluetooth';
+        case ConnectivityResult.vpn:
+          return 'VPN';
+        case ConnectivityResult.other:
+          return 'Autre';
+        case ConnectivityResult.none:
+        default:
+          return 'Aucune connexion';
+      }
+    } catch (e) {
+      print('Erreur lors de la récupération du type de connexion: $e');
+      return 'Inconnu';
+    }
+  }
+  
+  // Vérifier la connectivité avec un ping
+  Future<bool> pingTest({String host = 'google.com'}) async {
+    try {
+      final result = await InternetAddress.lookup(host);
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
+    } catch (e) {
+      print('Erreur lors du test de ping: $e');
+      return false;
+    }
+  }
+  
+  // Obtenir les informations de connectivité complètes
+  Future<Map<String, dynamic>> getConnectivityInfo() async {
+    try {
+      final isConnected = await this.isConnected();
+      final connectionType = await getConnectionType();
+      final pingResult = await pingTest();
+      final backendReady = await isBackendReady();
+      
+      return {
+        'isConnected': isConnected,
+        'connectionType': connectionType,
+        'pingTest': pingResult,
+        'backendReady': backendReady,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+    } catch (e) {
+      print('Erreur lors de la récupération des informations de connectivité: $e');
+      return {
+        'isConnected': false,
+        'connectionType': 'Inconnu',
+        'pingTest': false,
+        'backendReady': false,
+        'timestamp': DateTime.now().toIso8601String(),
+        'error': e.toString(),
+      };
+    }
+  }
+
+  static Future testConnection() async {}
+
+  static Future testAuthentication() async {}
+
+  static Future testAllEndpoints() async {}
 }

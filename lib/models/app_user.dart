@@ -1,31 +1,11 @@
-import 'package:hive/hive.dart';
-
-part 'app_user.g.dart';
-
-@HiveType(typeId: 0)
-class AppUser extends HiveObject {
-  @HiveField(0)
+class AppUser {
   final String id;
-  
-  @HiveField(1)
   final String email;
-  
-  @HiveField(2)
   final String name;
-  
-  @HiveField(3)
   final String? avatarUrl;
-  
-  @HiveField(4)
   final String role;
-  
-  @HiveField(5)
   final String? authToken;
-  
-  @HiveField(6)
   final String? refreshToken;
-  
-  @HiveField(7)
   final DateTime? tokenExpiry;
 
   AppUser({

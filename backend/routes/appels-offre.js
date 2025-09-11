@@ -259,6 +259,38 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Mettre/retirer en favori un appel d'offre
+router.patch('/:id/favorite', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isFavorite } = req.body || {};
+
+    const appelOffre = await db.get('SELECT * FROM appels_offre WHERE id = ?', [id]);
+    if (!appelOffre) {
+      return res.status(404).json({ success: false, message: "Appel d'offre non trouvé" });
+    }
+
+    // Ajouter une colonne favorite si elle n'existe pas encore (migration souple)
+    try {
+      await db.run('ALTER TABLE appels_offre ADD COLUMN favorite INTEGER DEFAULT 0');
+    } catch (_) {
+      // colonne peut déjà exister, ignorer
+    }
+
+    await db.run(
+      'UPDATE appels_offre SET favorite = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',$
+      [isFavorite ? 1 : 0, id]
+    );
+
+    const updated = await db.get('SELECT * FROM appels_offre WHERE id = ?', [id]);
+
+    res.json({ success: true, message: isFavorite ? 'Ajouté aux favoris' : 'Retiré des favoris', data: updated });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du favori de l'appel d'offre:", error);
+    res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+  }
+});
+
 // Soumettre une offre
 router.post('/:id/soumissions', authenticateToken, [
   body('customer_id').isInt({ min: 1 }),

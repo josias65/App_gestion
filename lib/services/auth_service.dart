@@ -1,23 +1,29 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../config/api_config.dart';
 import '../config/app_config.dart';
 import '../models/user_model.dart';
+import 'mock_api_service.dart' as mock_api;
 
 /// Service de gestion de l'authentification
 /// Gère la connexion, l'inscription, la déconnexion et le rafraîchissement du token
 class AuthService {
   // Configuration de l'API
-  final String baseUrl = ApiConfig.devBaseUrl; // Utilise l'URL de développement par défaut
+  final String baseUrl = ApiConfig.baseUrlForEnvironment;
   final String loginEndpoint = ApiConfig.loginEndpoint;
   final String registerEndpoint = ApiConfig.registerEndpoint;
   final String refreshEndpoint = ApiConfig.refreshEndpoint;
   final String logoutEndpoint = ApiConfig.logoutEndpoint;
+  
+  // Utiliser l'API mock en mode développement
+  // La configuration du mode mock est gérée par AppConfig.useMockData
 
   // Clés pour le stockage local
   static const String tokenKey = 'auth_token';
@@ -43,9 +49,7 @@ class AuthService {
   static const Duration tokenExpiration = Duration(hours: 1);
   
   // Headers pour les requêtes API
-  Map<String, String> get _headers => {
-        ...ApiConfig.defaultHeaders,
-      };
+  Map<String, String> get _headers => Map<String, String>.from(ApiConfig.defaultHeaders);
 
   // Headers pour les requêtes authentifiées
   Future<Map<String, String>> get _authHeaders async {
@@ -173,19 +177,80 @@ class AuthService {
     await logout();
     return false;
   }
+  
+  // Vérifie la connectivité réseau de manière simplifiée
+  Future<bool> _checkConnectivity() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
+  
+  // Méthode de connexion de test pour le développement
+  Future<AuthResult> _testLogin(String email, String password) async {
+    await Future.delayed(const Duration(seconds: 1)); // Simuler un délai réseau
+    
+    // Vérifier les identifiants de test
+    if ((email == 'test@example.com' && password == 'password123') ||
+        (email == 'admin@neo.com' && password == 'admin123')) {
+      final user = User(
+        id: '1',
+        email: email,
+        name: email == 'admin@neo.com' ? 'Admin' : 'Utilisateur de test',
+        role: email == 'admin@neo.com' ? 'admin' : 'user',
+        createdAt: DateTime.now(),
+        avatar: null,
+      );
+      
+      // Simuler un token JWT
+      final token = 'test_token_${DateTime.now().millisecondsSinceEpoch}';
+      
+      // Sauvegarder les données de l'utilisateur
+      _currentUser = user;
+      _currentToken = token;
+      _refreshToken = 'test_refresh_token';
+      
+      // Notifier les écouteurs
+      _authStateController.add(user);
+      
+      return AuthResult(
+        success: true,
+        message: 'Connexion réussie (mode test)',
+        user: user,
+        token: token,
+      );
+    }
+    
+    return const AuthResult(
+      success: false,
+      message: 'Identifiants incorrects (mode test)',
+    );
+  }
 
   // Connexion utilisateur
   Future<AuthResult> login(String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
       return const AuthResult(
-          success: false, message: 'Veuillez remplir tous les champs');
+          success: false, 
+          message: 'Veuillez remplir tous les champs');
     }
 
     _isLoadingController.add(true);
 
     try {
+      // Utiliser l'API mock si configuré
       if (AppConfig.useMockData) {
         return _testLogin(email, password);
+      }
+
+      // Vérification de la connectivité réseau
+      if (!await _checkConnectivity()) {
+        return const AuthResult(
+          success: false,
+          message: 'Pas de connexion Internet. Vérifiez votre connexion et réessayez.'
+        );
       }
 
       final response = await http.post(
@@ -195,15 +260,32 @@ class AuthService {
           'email': email,
           'password': password,
         }),
-      ).timeout(const Duration(seconds: 30));
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => http.Response(
+          jsonEncode({
+            'success': false,
+            'message': 'La connexion a expiré. Veuillez réessayer.'
+          }),
+          408, // Request Timeout
+        ),
+      );
 
-      final responseData = jsonDecode(response.body);
+      // Vérifier si la réponse est valide
+      if (response.body.isEmpty) {
+        return const AuthResult(
+          success: false,
+          message: 'Réserve vide reçue du serveur',
+        );
+      }
+
+      final responseData = jsonDecode(utf8.decode(response.bodyBytes));
       
       if (response.statusCode == 200) {
-        if (responseData['token'] == null) {
+        if (responseData['token'] == null || responseData['token'].toString().isEmpty) {
           return const AuthResult(
               success: false, 
-              message: 'Token manquant dans la réponse du serveur');
+              message: 'Token manquant ou invalide dans la réponse du serveur');
         }
 
         final token = responseData['token'] as String;
@@ -268,42 +350,42 @@ class AuthService {
     }
   }
 
-  // Mode test pour développement
-  Future<AuthResult> _testLogin(String email, String password) async {
-    // Simuler un délai réseau
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Test avec des credentials spécifiques
-    if (email == 'test@example.com' && password == 'password123') {
-      final testUser = {
-        'id': '1',
-        'name': 'Utilisateur Test',
-        'email': email,
-        'avatar': null,
-        'created_at': DateTime.now().toIso8601String(),
-        'role': 'user',
-      };
-
-      await _saveTokens('test_access_token', 'test_refresh_token');
-      await _saveUser(testUser);
-
-      return AuthResult.success(User.fromJson(testUser), 'test_access_token');
-    } else if (email == 'admin@neo.com' && password == 'admin123') {
-      final adminUser = {
-        'id': 2,
-        'name': 'Administrateur',
-        'email': email,
-        'avatar': null,
-        'created_at': DateTime.now().toIso8601String(),
-        'role': 'admin',
-      };
-
-      await _saveTokens('admin_access_token', 'admin_refresh_token');
-      await _saveUser(adminUser);
-
-      return AuthResult.success(User.fromJson(adminUser), 'admin_access_token');
-    } else {
+  // Méthode de connexion avec support mock
+  Future<AuthResult> _loginUser(String email, String password) async {
+    _isLoadingController.add(true);
+    
+    try {
+      // Mode test avec des identifiants codés en dur
+      if (email == 'admin@neo.com' && password == 'admin123') {
+        final adminUser = User(
+          id: '2',
+          email: email,
+          name: 'Administrateur',
+          role: 'admin',
+          createdAt: DateTime.now(),
+          avatar: null,
+        );
+        
+        await _saveTokens('admin_access_token', 'admin_refresh_token');
+        await _saveUser(adminUser.toJson());
+        
+        _currentUser = adminUser;
+        _currentToken = 'admin_access_token';
+        _refreshToken = 'admin_refresh_token';
+        
+        _authStateController.add(adminUser);
+        _startTokenRefreshTimer();
+        
+        return AuthResult(
+          success: true,
+          user: adminUser,
+          message: 'Connexion administrateur réussie',
+        );
+      }
+      
       return AuthResult.error('Email ou mot de passe incorrect');
+    } finally {
+      _isLoadingController.add(false);
     }
   }
 

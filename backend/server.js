@@ -11,6 +11,14 @@ const invoiceRoutes = require('./routes/invoices');
 const productRoutes = require('./routes/products');
 const appelsOffreRoutes = require('./routes/appels-offre');
 const marcheRoutes = require('./routes/marches');
+const recouvrementsRoutes = require('./routes/recouvrements');
+const relancesRoutes = require('./routes/relances');
+const devisRoutes = require('./routes/devis');
+const proformaRoutes = require('./routes/proforma');
+const livraisonsRoutes = require('./routes/livraisons');
+const dashboardRoutes = require('./routes/dashboard');
+const settingsRoutes = require('./routes/settings');
+const apiRoutes = require('./routes/api');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -51,14 +59,22 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-app.use('/auth', authRoutes);
-app.use('/customers', customerRoutes);
-app.use('/commande', orderRoutes);
-app.use('/facture', invoiceRoutes);
-app.use('/article', productRoutes);
-app.use('/appels-offre', appelsOffreRoutes);
-app.use('/marches', marcheRoutes);
+// Routes de l'API
+app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/appels-offre', appelsOffreRoutes);
+app.use('/api/marches', marcheRoutes);
+app.use('/api/recouvrements', recouvrementsRoutes);
+app.use('/api/relances', relancesRoutes);
+app.use('/api/devis', devisRoutes);
+app.use('/api/proforma', proformaRoutes);
+app.use('/api/livraison', livraisonsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/v1', apiRoutes); // Nouvelles routes API
 
 // Route de santé
 app.get('/health', (req, res) => {

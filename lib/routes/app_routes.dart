@@ -80,4 +80,7 @@ class AppRoutes {
   
   // Test Backend
   static const String testBackend = '/test-backend';
+  
+  // Test Database
+  static const String testDatabase = '/test-database';
 }

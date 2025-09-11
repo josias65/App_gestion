@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../routes/app_routes.dart';
+import '../models/settings_model.dart';
+import '../services/settings_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,47 +13,78 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen>
     with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
+  late final AnimationController _animationController;
+  late final Animation<double> _fadeAnimation;
   final ScrollController _scrollController = ScrollController();
 
-  bool isDarkTheme = false;
-  bool notificationsEnabled = true;
-  String currency = 'EUR';
-  String language = 'Français';
-  bool autoLock = true;
+  late Settings _settings;
+  late final SettingsService _settingsService;
+  late String _language;
+  late bool _autoLock;
 
   @override
   void initState() {
     super.initState();
+    _settingsService = SettingsService();
+    _settings = _settingsService.settings;
+    _language = _settings.language;
+    _autoLock = _settings.autoLock;
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
+
     _animationController.forward();
+    _initSettings();
+  }
+
+  Future<void> _initSettings() async {
+    await _settingsService.init();
+    _settingsService.settingsStream.listen((settings) {
+      if (mounted) {
+        setState(() {
+          _settings = settings;
+          _language = _settings.language;
+          _autoLock = _settings.autoLock;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     _scrollController.dispose();
+    _settingsService.dispose();
     super.dispose();
   }
 
-  void toggleTheme(bool value) {
-    setState(() => isDarkTheme = value);
-    HapticFeedback.lightImpact();
+  Future<void> _toggleTheme(bool value) async {
+    final success = await _settingsService.updateSetting('isDarkTheme', value);
+    if (success && mounted) {
+      setState(() {
+        _settings = _settings.copyWith(isDarkTheme: value);
+      });
+      HapticFeedback.lightImpact();
+    }
   }
 
-  void toggleNotifications(bool value) {
-    setState(() => notificationsEnabled = value);
-    HapticFeedback.lightImpact();
+  Future<void> _toggleNotifications(bool value) async {
+    final success = await _settingsService.updateSetting('notificationsEnabled', value);
+    if (success && mounted) {
+      setState(() {
+        _settings = _settings.copyWith(notificationsEnabled: value);
+      });
+      HapticFeedback.lightImpact();
+    }
   }
 
-  void showCurrencySelector() {
+  void _showCurrencySelector() {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -70,25 +103,30 @@ class _SettingsScreenState extends State<SettingsScreen>
             ...['EUR', 'USD', 'CFA', 'CAD'].map(
               (curr) => ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: currency == curr
+                  backgroundColor: _settings.currency == curr
                       ? const Color.fromARGB(255, 37, 33, 243)
                       : Colors.grey[300],
                   child: Text(
                     curr,
                     style: TextStyle(
-                      color: currency == curr ? Colors.white : Colors.black,
+                      color: _settings.currency == curr ? Colors.white : Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 title: Text(curr),
-                trailing: currency == curr
+                trailing: _settings.currency == curr
                     ? const Icon(Icons.check, color: Colors.blue)
                     : null,
-                onTap: () {
-                  setState(() => currency = curr);
-                  Navigator.pop(context);
-                  HapticFeedback.selectionClick();
+                onTap: () async {
+                  final success = await _settingsService.updateSetting('currency', curr);
+                  if (success && mounted) {
+                    setState(() {
+                      _settings = _settings.copyWith(currency: curr);
+                    });
+                    Navigator.pop(context);
+                    HapticFeedback.selectionClick();
+                  }
                 },
               ),
             ),
@@ -98,13 +136,13 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  void showLanguageSelector() {
+  void _showLanguageSelector() {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
+      builder: (BuildContext context) => Container(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -117,28 +155,34 @@ class _SettingsScreenState extends State<SettingsScreen>
             ...['Français', 'Anglais', 'Espagnol'].map(
               (lang) => ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: language == lang
+                  backgroundColor: _language == lang
                       ? const Color.fromARGB(255, 29, 3, 173)
                       : Colors.grey[300],
                   child: Text(
                     lang.substring(0, 2).toUpperCase(),
                     style: TextStyle(
-                      color: language == lang ? Colors.white : Colors.black,
+                      color: _language == lang ? Colors.white : Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 title: Text(lang),
-                trailing: language == lang
+                trailing: _language == lang
                     ? const Icon(
                         Icons.check,
                         color: Color.fromARGB(255, 28, 3, 128),
                       )
                     : null,
-                onTap: () {
-                  setState(() => language = lang);
-                  Navigator.pop(context);
-                  HapticFeedback.selectionClick();
+                onTap: () async {
+                  final success = await _settingsService.updateSetting('language', lang);
+                  if (success && mounted) {
+                    setState(() {
+                      _language = lang;
+                      _settings = _settings.copyWith(language: lang);
+                    });
+                    Navigator.pop(context);
+                    HapticFeedback.selectionClick();
+                  }
                 },
               ),
             ),
@@ -183,21 +227,23 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _buildAnimatedTile({required Widget child, required int index}) {
     return SlideTransition(
-      position:
-          Tween<Offset>(
-            begin: Offset(index.isEven ? -1 : 1, 0),
-            end: Offset.zero,
-          ).animate(
-            CurvedAnimation(
-              parent: _animationController,
-              curve: Interval(
-                (index * 0.1).clamp(0.0, 1.0),
-                ((index * 0.1) + 0.3).clamp(0.0, 1.0),
-                curve: Curves.easeOutBack,
-              ),
-            ),
+      position: Tween<Offset>(
+        begin: Offset(index.isEven ? -1 : 1, 0),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            (index * 0.1).clamp(0.0, 1.0),
+            ((index * 0.1) + 0.3).clamp(0.0, 1.0),
+            curve: Curves.easeOutBack,
           ),
-      child: FadeTransition(opacity: _fadeAnimation, child: child),
+        ),
+      ),
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: child,
+      ),
     );
   }
 
@@ -225,18 +271,26 @@ class _SettingsScreenState extends State<SettingsScreen>
           _buildAnimatedTile(
             child: SwitchListTile(
               title: const Text("Thème sombre"),
-              value: isDarkTheme,
-              onChanged: toggleTheme,
-              secondary: const Icon(Icons.brightness_6),
+              value: _settings.isDarkTheme,
+              onChanged: _toggleTheme,
+              secondary: Switch.adaptive(
+                value: _settings.isDarkTheme,
+                onChanged: _toggleTheme,
+                activeColor: const Color.fromARGB(255, 37, 33, 243),
+              ),
             ),
             index: 0,
           ),
           _buildAnimatedTile(
             child: SwitchListTile(
               title: const Text("Notifications"),
-              value: notificationsEnabled,
-              onChanged: toggleNotifications,
-              secondary: const Icon(Icons.notifications),
+              value: _settings.notificationsEnabled,
+              onChanged: _toggleNotifications,
+              secondary: Switch.adaptive(
+                value: _settings.notificationsEnabled,
+                onChanged: _toggleNotifications,
+                activeColor: const Color.fromARGB(255, 37, 33, 243),
+              ),
             ),
             index: 1,
           ),
@@ -245,8 +299,8 @@ class _SettingsScreenState extends State<SettingsScreen>
             child: ListTile(
               leading: const Icon(Icons.monetization_on),
               title: const Text("Devise"),
-              subtitle: Text(currency),
-              onTap: showCurrencySelector,
+              subtitle: Text(_settings.currency),
+              onTap: _showCurrencySelector,
             ),
             index: 2,
           ),
@@ -254,8 +308,8 @@ class _SettingsScreenState extends State<SettingsScreen>
             child: ListTile(
               leading: const Icon(Icons.language),
               title: const Text("Langue"),
-              subtitle: Text(language),
-              onTap: showLanguageSelector,
+              subtitle: Text(_language),
+              onTap: _showLanguageSelector,
             ),
             index: 3,
           ),
@@ -263,8 +317,11 @@ class _SettingsScreenState extends State<SettingsScreen>
           _buildAnimatedTile(
             child: SwitchListTile(
               title: const Text("Verrouillage automatique"),
-              value: autoLock,
-              onChanged: (val) => setState(() => autoLock = val),
+              value: _autoLock,
+              onChanged: (val) {
+                _settingsService.updateSetting('autoLock', val);
+                setState(() => _autoLock = val);
+              },
               secondary: const Icon(Icons.lock_clock),
             ),
             index: 4,

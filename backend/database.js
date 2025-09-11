@@ -98,6 +98,43 @@ class Database {
         FOREIGN KEY (customer_id) REFERENCES customers (id)
       )`,
 
+      // Table des devis
+      `CREATE TABLE IF NOT EXISTS devis (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        total REAL NOT NULL,
+        status TEXT DEFAULT 'draft',
+        valid_until DATE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers (id)
+      )`,
+
+      // Table des proformas
+      `CREATE TABLE IF NOT EXISTS proformas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        total REAL NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers (id)
+      )`,
+
+      // Table des livraisons
+      `CREATE TABLE IF NOT EXISTS livraisons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        commande_id INTEGER,
+        customer_id INTEGER,
+        status TEXT DEFAULT 'pending',
+        delivered_at DATE,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (commande_id) REFERENCES commandes (id),
+        FOREIGN KEY (customer_id) REFERENCES customers (id)
+      )`,
+
       // Table des appels d'offre
       `CREATE TABLE IF NOT EXISTS appels_offre (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -161,6 +198,13 @@ class Database {
         status TEXT DEFAULT 'sent',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (facture_id) REFERENCES factures (id)
+      )`
+      ,
+      // Table des paramètres applicatifs (clé-valeur unique par clé)
+      `CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`
     ];
 

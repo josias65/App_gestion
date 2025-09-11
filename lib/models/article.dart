@@ -1,38 +1,14 @@
-import 'package:hive/hive.dart';
-
-part 'article.g.dart';
-
-@HiveType(typeId: 2)
-class Article extends HiveObject {
-  @HiveField(0)
+class Article {
   final String id;
-  
-  @HiveField(1)
   final String code;
-  
-  @HiveField(2)
   final String name;
-  
-  @HiveField(3)
   final String description;
-  
-  @HiveField(4)
   final double price;
-  
-  @HiveField(5)
   final String? unit;
-  
-  @HiveField(6)
   int stockQuantity;
-  
-  @HiveField(7)
   final String? category;
   
-  @HiveField(8)
-  @HiveField(8)
   final DateTime createdAt;
-  
-  @HiveField(9)
   final DateTime updatedAt;
 
   Article({

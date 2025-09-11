@@ -1,28 +1,76 @@
+import 'dart:io' show Platform;
+
+/// Configuration de l'API pour différents environnements
+/// 
+/// Cette classe contient tous les endpoints de l'API ainsi que la configuration
+/// pour les différents environnements (développement, staging, production).
 class ApiConfig {
   // Configuration de l'environnement
-  static const bool isDevelopment = true;
+  static const bool isDevelopment = bool.fromEnvironment('DEBUG', defaultValue: true);
   static const String environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
+  static const bool useMockData = bool.fromEnvironment('USE_MOCK_API', defaultValue: true);
 
   // URLs pour différents environnements
   static const String devBaseUrl = 'http://10.0.2.2:8000'; // Pour émulateur Android
   static const String iosBaseUrl = 'http://localhost:8000'; // Pour simulateur iOS
   static const String mockApiUrl = 'https://66f7c5c8b5d85f31a3418d8e.mockapi.io/api/v1';
-  static const String prodBaseUrl = 'https://api.votredomaine.com'; // À remplacer par votre URL de production
+  static const String prodBaseUrl = 'https://api.votredomaine.com';
+  
+  // Timeouts
+  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 30);
+  
+  // En-têtes par défaut
+  static const Map<String, String> defaultHeaders = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  };
+
+  // Endpoints pour les appels d'offre
+  static const String appelsOffre = '/appels-offre';
+  static String appelOffreDetail(String id) => '$appelsOffre/$id';
+  static String appelOffreFavori(String id) => '$appelsOffre/$id/favorite';
+  
+  // Endpoints pour les recouvrements
+  static const String recouvrements = '/recouvrements';
+  static String recouvrementDetail(String id) => '$recouvrements/$id';
+  static String recouvrementStatistiques = '$recouvrements/statistiques';
+  
+  // Endpoints pour les relances
+  static const String relances = '/relances';
+  static String relanceDetail(String id) => '$relances/$id';
+  static String relanceTraiter(String id) => '$relances/$id/traiter';
+  static String relanceStatistiques = '$relances/statistiques';
+  
+  // Endpoints pour les marchés
+  static const String marches = '/marches';
+  static String marcheDetail(String id) => '$marches/$id';
+  static String marcheSoumissions(String marcheId) => '$marches/$marcheId/soumissions';
+  static String marcheStatistiques = '$marches/statistiques';
   
   // URL de base dynamique selon l'environnement
   static String get baseUrlForEnvironment {
-    switch (environment) {
+    // Utiliser l'API mock si configuré
+    if (useMockData) {
+      return mockApiUrl;
+    }
+    
+    switch (environment.toLowerCase()) {
       case 'production':
-        return prodBaseUrl;
+        return const String.fromEnvironment('API_BASE_URL', defaultValue: prodBaseUrl);
       case 'staging':
-        return 'https://staging.votredomaine.com'; // URL de staging si nécessaire
-      case 'mock':
-        return mockApiUrl;
+        return const String.fromEnvironment('STAGING_API_URL', 
+            defaultValue: 'https://staging.votredomaine.com');
       case 'development':
       default:
-        // Pour le développement, on utilise l'URL de développement
-        // Note: Pour iOS, vous devrez peut-être utiliser iosBaseUrl
-        return devBaseUrl;
+        // Détection automatique de la plateforme pour le développement
+        if (Platform.isIOS) {
+          return iosBaseUrl;
+        } else if (Platform.isAndroid) {
+          return devBaseUrl;
+        }
+        return devBaseUrl; // Fallback
     }
   }
 
@@ -69,12 +117,6 @@ class ApiConfig {
 
   // Endpoints des relances
   static const String relancesEndpoint = '/relances';
-
-  // Headers par défaut
-  static Map<String, String> get defaultHeaders => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
 
   // Timeout pour les requêtes
   static const Duration requestTimeout = Duration(seconds: 30);

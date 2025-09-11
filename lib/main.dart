@@ -1,15 +1,27 @@
 // ignore_for_file: unused_import, prefer_typing_uninitialized_variables
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'config/api_config.dart';
+import 'config/app_config.dart';
 import 'providers/auth_provider.dart';
-import 'database/simple_database_service.dart';
+import 'services/database_service.dart';
+import 'services/api_client.dart';
+import 'services/auth_service.dart';
 
 // Import de tous les écrans principaux
 import 'login/login.dart';
 import 'login/dashboard_screen.dart'
-    hide StockListScreen, StockDetailScreen, StockEditScreen;
+        // ignore: undefined_hidden_name
+        hide
+        StockListScreen,
+        StockDetailScreen,
+        StockEditScreen;
 import 'login/settings.dart';
 import 'login/mot_de_passe.dart';
 import 'profil/profil_screen.dart';
@@ -50,24 +62,59 @@ import 'recouvrements/add_recouvrement.dart';
 import 'recouvrements/detail_recouvrement.dart';
 import 'recouvrements/edit_recouvrement.dart';
 import 'routes/app_routes.dart';
-import 'screens/simple_database_test_screen.dart';
-import 'login/test_backend_screen.dart';
 
-void main() async {
+import 'login/test_backend_screen.dart';
+import 'screens/service_test_screen.dart';
+
+Future<void> main() async {
+  // Assure que le binding Flutter est initialisé
   WidgetsFlutterBinding.ensureInitialized();
   
-  try {
-    // Initialiser la base de données simple
-    await SimpleDatabaseService.initialize();
-    
-    print('Application initialisée avec succès');
-  } catch (e) {
-    print('Erreur lors de l\'initialisation: $e');
-  }
+  // Configuration de l'orientation de l'écran
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   
-  runApp(
-    ChangeNotifierProvider(create: (_) => AuthProvider(), child: const MyApp()),
-  );
+  // Initialisation des services
+  await _initializeServices();
+  
+  // Démarrer l'application
+  runApp(const MyApp());
+}
+
+/// Initialise les services de l'application
+Future<void> _initializeServices() async {
+  try {
+    // Initialiser SharedPreferences
+    await SharedPreferences.getInstance();
+    
+    // Initialiser Hive
+    await Hive.initFlutter();
+    
+    // Initialiser le service de base de données
+    await DatabaseService.initialize();
+    
+    // Initialiser le client API
+    final apiClient = ApiClient.instance;
+    apiClient.initialize();
+    
+    // Vérifier si on est en mode développement
+    final bool isDev = AppConfig.isDevelopment;
+    final bool useMock = ApiConfig.useMockData;
+    
+    if (kDebugMode) {
+      print('Mode développement: $isDev');
+      print('Mode mock activé: $useMock');
+      print('URL de base de l\'API: ${ApiConfig.baseUrlForEnvironment}');
+    }
+    
+  } catch (e) {
+    if (kDebugMode) {
+      print('Erreur lors de l\'initialisation des services: $e');
+    }
+    rethrow;
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -75,232 +122,259 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'App de Gestion Commerciale',
+    return MultiProvider(
+      providers: [
+        // Fournisseur d'authentification
+        ChangeNotifierProvider(
+          create: (context) => AuthProvider(),
+        ),
+        
+        // Fournisseur du client API
+        Provider<ApiClient>(
+          create: (context) => ApiClient.instance,
+          dispose: (_, client) => client.dispose(),
+        ),
+        
+        // Fournisseur du service de base de données
+        Provider<DatabaseService>(
+          create: (context) => DatabaseService.instance,
+          dispose: (_, service) => service.close(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Gestion Commerciale',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.indigo, useMaterial3: true),
-      home: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
-          if (authProvider.isLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+          fontFamily: 'Roboto',
+          useMaterial3: true,
+        ),
+        home: Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            if (authProvider.isLoading) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return authProvider.isAuthenticated
+                ? const DashboardScreen()
+                : const LoginScreen();
+          },
+        ),
+        routes: {
+          AppRoutes.login: (context) => const LoginScreen(),
+          AppRoutes.dashboard: (context) => const DashboardScreen(),
+          AppRoutes.settings: (context) => const SettingsScreen(),
+          AppRoutes.forgotPassword: (context) => const ForgotPasswordScreen(),
+          AppRoutes.profil: (context) => const ProfileScreen(),
+          AppRoutes.clients: (context) => const ClientListScreen(),
+          AppRoutes.addClient: (context) => const AddClientScreen(),
+          AppRoutes.listAppelsOffres: (context) => const AppelsOffresScreen(),
+          AppRoutes.devis: (context) => const DevisListScreen(),
+          AppRoutes.createDevis: (context) => const CreateDevisScreen(),
+          AppRoutes.marcheList: (context) => const MarcheListScreen(),
+          AppRoutes.marcheHistorique: (context) => const HistoriqueMarchesScreen(),
+          AppRoutes.stock: (context) => const StockListScreen(),
+          AppRoutes.relances: (context) => const RelancesScreen(),
+          AppRoutes.recouvrements: (context) => const RecouvrementsScreen(),
+          AppRoutes.addRecouvrement: (context) => const AddRecouvrementScreen(),
+          AppRoutes.commandes: (context) => const CommandesScreen(),
+          AppRoutes.addCommande: (context) => const AddCommandeScreen(),
+          AppRoutes.factures: (context) => const FactureScreen(),
+          AppRoutes.addFacture: (context) => const AddFactureScreen(),
+        },
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            // --- Appel d'offre ---
+            case AppRoutes.detailAppelOffre:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => DetailAppelOffreScreen(appel: args),
+                );
+              }
+              break;
+            case AppRoutes.addAppelOffre:
+              return MaterialPageRoute(
+                builder: (_) => const AddAppelOffreScreen(),
+              );
+              
+            // --- Marché ---
+            case AppRoutes.marcheDetail:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => MarcheDetailScreen(appel: args),
+                );
+              }
+              break;
+            case AppRoutes.marcheAdd:
+              final marcheToEdit = settings.arguments as Map<String, dynamic>?;
+              return MaterialPageRoute(
+                builder: (_) => MarcheAddScreen(marcheToEdit: marcheToEdit),
+              );
+            case AppRoutes.marcheSoumission:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => SoumissionScreen(
+                    appel: args['appel'] ?? {},
+                    marcheId: args['marcheId'] ?? '',
+                    appelId: args['appelId'] ?? '',
+                  ),
+                );
+              }
+              break;
+              
+            // --- Stock ---
+            case AppRoutes.stockDetail:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => StockDetailScreen(article: args),
+                );
+              }
+              break;
+            case AppRoutes.addStock:
+              final articleToEdit = settings.arguments as Map<String, dynamic>?;
+              return MaterialPageRoute<Map<String, dynamic>>(
+                builder: (_) => AddStockScreen(articleToEdit: articleToEdit),
+              );
+            case AppRoutes.stockEdit:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute<Map<String, dynamic>>(
+                  builder: (_) => StockEditScreen(existingItem: args),
+                );
+              }
+              break;
+              
+            // --- Client ---
+            case AppRoutes.clientDetail:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => ClientDetailScreen(client: args),
+                );
+              }
+              break;
+              
+            // --- Devis ---
+            case AppRoutes.devisDetail:
+              final arg = settings.arguments;
+              DevisModel? devis;
+              if (arg is DevisModel) {
+                devis = arg;
+              } else if (arg is Map<String, dynamic>) {
+                devis = DevisModel(
+                  reference: arg['reference'] ?? '',
+                  client: arg['client'] ?? '',
+                  date: arg['date'] ?? '',
+                  status: arg['status'] ?? '',
+                  total: (arg['total'] is num) ? arg['total'].toDouble() : 0.0,
+                  articles: (arg['articles'] as List<dynamic>?)
+                      ?.cast<Map<String, dynamic>>() ?? [],
+                );
+              }
+              if (devis != null) {
+                return MaterialPageRoute(
+                  builder: (_) => DevisDetailScreen(devis: devis!),
+                );
+              }
+              break;
+              
+            // --- Relances ---
+            case AppRoutes.detailRelance:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => DetailRelanceScreen(relance: args),
+                );
+              }
+              break;
+            case AppRoutes.editRelance:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => EditRelanceScreen(relance: args),
+                );
+              }
+              break;
+            case AppRoutes.addRelance:
+              final relanceToEdit = settings.arguments as Map<String, dynamic>?;
+              return MaterialPageRoute(
+                builder: (_) => AddRelanceScreen(relanceToEdit: relanceToEdit),
+              );
+              
+            // --- Recouvrements ---
+            case AppRoutes.detailRecouvrement:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => DetailRecouvrementScreen(recouvrement: args),
+                );
+              }
+              break;
+            case AppRoutes.editRecouvrement:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => EditRecouvrementScreen(recouvrement: args),
+                );
+              }
+              break;
+              
+            // --- Commandes ---
+            case AppRoutes.detailCommande:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => DetailCommandeScreen(
+                    commande: args,
+                    commandeId: args['id']?.toString() ?? '',
+                  ),
+                );
+              }
+              break;
+            case AppRoutes.editCommande:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => EditCommandeScreen(
+                    commandeId: args['id']?.toString() ?? '',
+                  ),
+                );
+              }
+              break;
+              
+            // --- Factures ---
+            case AppRoutes.detailFacture:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => DetailFactureScreen(
+                    factureId: args['id']?.toString() ?? '',
+                  ),
+                );
+              }
+              break;
+            case AppRoutes.editFacture:
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                return MaterialPageRoute(
+                  builder: (_) => EditFactureScreen(factureId: args['id']?.toString() ?? ''),
+                );
+              }
+              break;
+              
+            // --- Tests ---
+            case '/service-test':
+              return MaterialPageRoute(builder: (_) => const ServiceTestScreen());
           }
-          return authProvider.isAuthenticated
-              ? const DashboardScreen()
-              : const LoginScreen();
+          return null;
         },
       ),
-      routes: {
-        AppRoutes.login: (context) => const LoginScreen(),
-        AppRoutes.dashboard: (context) => const DashboardScreen(),
-        AppRoutes.settings: (context) => const SettingsScreen(),
-        AppRoutes.forgotPassword: (context) => const ForgotPasswordScreen(),
-        AppRoutes.profil: (context) => const ProfileScreen(),
-        AppRoutes.clients: (context) => const ClientListScreen(),
-        AppRoutes.addClient: (context) => const AddClientScreen(),
-        AppRoutes.listAppelsOffres: (context) => const AppelsOffresScreen(),
-        AppRoutes.devis: (context) => const DevisListScreen(),
-        AppRoutes.createDevis: (context) => const CreateDevisScreen(),
-        AppRoutes.marcheList: (context) => const MarcheListScreen(),
-        AppRoutes.marcheHistorique: (context) =>
-            const HistoriqueMarchesScreen(),
-        AppRoutes.stock: (context) => const StockListScreen(),
-        AppRoutes.relances: (context) => const RelancesScreen(),
-        AppRoutes.recouvrements: (context) => const RecouvrementsScreen(),
-        AppRoutes.addRecouvrement: (context) => const AddRecouvrementScreen(),
-        AppRoutes.commandes: (context) => const CommandesScreen(),
-        AppRoutes.addCommande: (context) => const AddCommandeScreen(),
-        AppRoutes.factures: (context) => const FactureScreen(),
-        AppRoutes.addFacture: (context) => const AddFactureScreen(),
-        AppRoutes.testBackend: (context) => const TestBackendScreen(),
-        '/database-test': (context) => const SimpleDatabaseTestScreen(),
-      },
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          // --- Appel d'offre ---
-          case AppRoutes.detailAppelOffre:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => DetailAppelOffreScreen(appel: args),
-              );
-            }
-            break;
-          case AppRoutes.addAppelOffre:
-            return MaterialPageRoute(
-              builder: (_) => const AddAppelOffreScreen(),
-            );
-          // --- Marché ---
-          case AppRoutes.marcheDetail:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => MarcheDetailScreen(appel: args),
-              );
-            }
-            break;
-          case AppRoutes.marcheAdd:
-            final marcheToEdit = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (_) => MarcheAddScreen(marcheToEdit: marcheToEdit),
-            );
-          case AppRoutes.marcheSoumission:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => SoumissionScreen(
-                  appel: args['appel'] ?? {},
-                  marcheId: args['marcheId'] ?? '',
-                  appelId: args['appelId'] ?? '',
-                ),
-              );
-            } else {
-              return MaterialPageRoute(
-                builder: (_) => const SoumissionScreen(
-                  appel: {},
-                  marcheId: '',
-                  appelId: '',
-                ),
-              );
-            }
-          // --- Stock ---
-          case AppRoutes.stockDetail:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => StockDetailScreen(article: args),
-              );
-            }
-            break;
-          case AppRoutes.addStock:
-            final articleToEdit = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute<Map<String, dynamic>>(
-              builder: (_) => AddStockScreen(articleToEdit: articleToEdit),
-            );
-          case AppRoutes.stockEdit:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute<Map<String, dynamic>>(
-                builder: (_) => StockEditScreen(existingItem: args),
-              );
-            }
-            break;
-          // --- Client ---
-          case AppRoutes.clientDetail:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => ClientDetailScreen(client: args),
-              );
-            }
-            break;
-          // --- Devis ---
-          case AppRoutes.devisDetail:
-            final arg = settings.arguments;
-            // ignore: unused_local_variable
-            DevisModel? devis;
-            if (arg is DevisModel) {
-              devis = arg;
-            } else if (arg is Map<String, dynamic>) {
-              devis = DevisModel(
-                reference: arg['reference'] ?? '',
-                client: arg['client'] ?? '',
-                date: arg['date'] ?? '',
-                status: arg['status'] ?? '',
-                total: (arg['total'] is num) ? arg['total'].toDouble() : 0.0,
-                articles:
-                    (arg['articles'] as List<dynamic>?)
-                        ?.cast<Map<String, dynamic>>() ??
-                    [],
-              );
-            }
-
-            break;
-          // --- Relances ---
-          case AppRoutes.detailRelance:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => DetailRelanceScreen(relance: args),
-              );
-            }
-            break;
-          case AppRoutes.editRelance:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => EditRelanceScreen(relance: args),
-              );
-            }
-            break;
-          case AppRoutes.addRelance:
-            final relanceToEdit = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (_) => AddRelanceScreen(relanceToEdit: relanceToEdit),
-            );
-          // --- Recouvrements ---
-          case AppRoutes.detailRecouvrement:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => DetailRecouvrementScreen(recouvrement: args),
-              );
-            }
-            break;
-          case AppRoutes.editRecouvrement:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => EditRecouvrementScreen(recouvrement: args),
-              );
-            }
-            break;
-          // --- Commandes ---
-          case AppRoutes.detailCommande:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => DetailCommandeScreen(
-                  commande: args,
-                  commandeId: args['id']?.toString() ?? '',
-                ),
-              );
-            }
-            break;
-          case AppRoutes.editCommande:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => EditCommandeScreen(
-                  commandeId: args['id']?.toString() ?? '',
-                ),
-              );
-            }
-            break;
-          // --- Factures ---
-          case AppRoutes.detailFacture:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) => DetailFactureScreen(
-                  factureId: args['id']?.toString() ?? '',
-                ),
-              );
-            }
-            break;
-          case AppRoutes.editFacture:
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (_) =>
-                    EditFactureScreen(factureId: args['id']?.toString() ?? ''),
-              );
-            }
-            break;
-        }
-        return null;
-      },
     );
   }
 }
