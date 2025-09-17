@@ -9,60 +9,8 @@ class StockListScreen extends StatefulWidget {
 }
 
 class _StockListScreenState extends State<StockListScreen> {
-  final List<Map<String, dynamic>> _materiels = [
-    {
-      'id': 1,
-      'nom': 'Ordinateur Portable HP',
-      'reference': 'HP-LAPTOP-01',
-      'quantite': 8,
-      'prixUnitaire': 350000,
-      'seuilMin': 5,
-      'type': 'PC',
-      'marque': 'HP',
-      'modele': 'Pavilion',
-      'etat': 'Neuf',
-      'dateEntree': '2024-01-15',
-    },
-    {
-      'id': 2,
-      'nom': 'Imprimante Canon',
-      'reference': 'CAN-PRNT-2023',
-      'quantite': 3,
-      'prixUnitaire': 150000,
-      'seuilMin': 2,
-      'type': 'Imprimante',
-      'marque': 'Canon',
-      'modele': 'Pixma',
-      'etat': 'Bon état',
-      'dateEntree': '2024-02-10',
-    },
-    {
-      'id': 3,
-      'nom': 'Routeur TP-Link',
-      'reference': 'TPL-ROUTER-AX1800',
-      'quantite': 10,
-      'prixUnitaire': 55000,
-      'seuilMin': 4,
-      'type': 'Routeur',
-      'marque': 'TP-Link',
-      'modele': 'AX1800',
-      'etat': 'Neuf',
-      'dateEntree': '2024-03-05',
-    },
-    {
-      'id': 4,
-      'nom': 'Clavier mécanique',
-      'reference': 'KBD-MECH-05',
-      'quantite': 1,
-      'prixUnitaire': 45000,
-      'seuilMin': 3,
-      'type': 'Clavier',
-      'marque': 'Logitech',
-      'modele': 'G Pro',
-      'etat': 'Neuf',
-      'dateEntree': '2024-01-20',
-    },
-  ];
+  // Liste vide par défaut - données récupérées depuis l'API
+  final List<Map<String, dynamic>> _materiels = [];
 
   String _searchQuery = '';
   String _selectedFilter = 'Tous';

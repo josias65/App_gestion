@@ -109,30 +109,8 @@ class ClientDetailScreen extends StatelessWidget {
 
   // Tab content for "Ventes" (Sales).
   Widget _buildVentesTab() {
-    // Mock data for sales history.
-    final List<Map<String, dynamic>> ventes = [
-      {
-        'id': '#CMD-2023-0456',
-        'date': DateTime(2023, 5, 15),
-        'montant': 12500.0,
-        'statut': 'Payé',
-        'produits': ['Serveur Rack DL380', 'Switch Cisco 48 ports'],
-      },
-      {
-        'id': '#CMD-2023-0289',
-        'date': DateTime(2023, 3, 8),
-        'montant': 8700.0,
-        'statut': 'Payé',
-        'produits': ['Firewall Fortinet 100F', 'Licence 1 an'],
-      },
-      {
-        'id': '#CMD-2023-0112',
-        'date': DateTime(2023, 1, 22),
-        'montant': 4300.0,
-        'statut': 'Annulé',
-        'produits': ['NAS Synology DS1821+'],
-      },
-    ];
+    // Liste vide par défaut - données récupérées depuis l'API
+    final List<Map<String, dynamic>> ventes = [];
 
     // Calculate total revenue from mock data.
     final totalRevenue = ventes
@@ -184,33 +162,8 @@ class ClientDetailScreen extends StatelessWidget {
 
   // Tab content for "Maintenance"
   Widget _buildMaintenanceTab() {
-    // Mock data for maintenance interventions.
-    final List<Map<String, dynamic>> interventions = [
-      {
-        'id': '#INT-2023-078',
-        'date': DateTime(2023, 6, 10),
-        'technicien': 'AMA KALITO',
-        'type': 'Maintenance préventive',
-        'statut': 'Terminé',
-        'description': 'Vérification et nettoyage des serveurs',
-      },
-      {
-        'id': '#INT-2023-065',
-        'date': DateTime(2023, 4, 5),
-        'technicien': 'komi jojo',
-        'type': 'Dépannage urgent',
-        'statut': 'Terminé',
-        'description': 'Problème de connexion réseau',
-      },
-      {
-        'id': '#INT-2023-089',
-        'date': DateTime(2023, 7, 2),
-        'technicien': 'KOKOU Martin',
-        'type': 'Mise à jour logicielle',
-        'statut': 'Planifié',
-        'description': 'Mise à jour des systèmes de sécurité',
-      },
-    ];
+    // Liste vide par défaut - données récupérées depuis l'API
+    final List<Map<String, dynamic>> interventions = [];
 
     final nextIntervention = interventions.firstWhere(
       (inter) => inter['statut'] == 'Planifié',
@@ -258,27 +211,8 @@ class ClientDetailScreen extends StatelessWidget {
 
   // Tab content for "Documents"
   Widget _buildDocumentsTab() {
-    // Mock data for shared documents.
-    final List<Map<String, dynamic>> documents = [
-      {
-        'type': 'Contrat',
-        'nom': 'Contrat de maintenance 2023.pdf',
-        'date': DateTime(2023, 1, 10),
-        'taille': '2.4 MB',
-      },
-      {
-        'type': 'Facture',
-        'nom': 'Facture_2023-0456.pdf',
-        'date': DateTime(2023, 5, 18),
-        'taille': '1.1 MB',
-      },
-      {
-        'type': 'Devis',
-        'nom': 'Devis_serveurs_2023.pdf',
-        'date': DateTime(2023, 4, 22),
-        'taille': '3.2 MB',
-      },
-    ];
+    // Liste vide par défaut - données récupérées depuis l'API
+    final List<Map<String, dynamic>> documents = [];
 
     final totalSize = documents.fold(0.0, (sum, item) {
       final size = double.tryParse(item['taille'].split(' ')[0]) ?? 0.0;

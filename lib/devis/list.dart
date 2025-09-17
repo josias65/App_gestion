@@ -63,29 +63,8 @@ class _DevisListScreenState extends State<DevisListScreen>
 
   @override
   Widget build(BuildContext context) {
-    List<DevisModel> devisList = [
-      DevisModel(
-        reference: "DV001",
-        client: "Josias",
-        date: "2025-07-15",
-        status: "En attente",
-        total: 1250.0,
-      ),
-      DevisModel(
-        reference: "DV002",
-        client: "Sarah",
-        date: "2025-07-14",
-        status: "Accepté",
-        total: 850.0,
-      ),
-      DevisModel(
-        reference: "DV003",
-        client: "Daniel",
-        date: "2025-07-13",
-        status: "Refusé",
-        total: 490.0,
-      ),
-    ];
+    // Liste vide par défaut - données récupérées depuis l'API
+    List<DevisModel> devisList = [];
 
     // Filtrage insensible à la casse
     var filteredDevis = devisList.where((devis) {

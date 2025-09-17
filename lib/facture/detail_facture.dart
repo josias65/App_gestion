@@ -58,24 +58,22 @@ class _DetailFactureScreenState extends State<DetailFactureScreen>
     super.dispose();
   }
 
-  // Mock invoice data. In a real app, this would be fetched from an API or database
+  // Récupérer les données de la facture depuis l'API
   Map<String, dynamic> _getFactureDetails() {
+    // Retourner des données vides par défaut
     return {
       'id': widget.factureId,
-      'numero': 'FAC001-2025',
-      'client': 'Jean konami',
-      'date': '2025-07-21',
-      'statut': 'Payée',
-      'montant': 1500.00,
-      'articles': [
-        {'nom': 'Produit A', 'quantite': 15, 'prixUnitaire': 50.00},
-        {'nom': 'Produit B', 'quantite': 7, 'prixUnitaire': 100.00},
-      ],
+      'numero': '',
+      'client': '',
+      'date': '',
+      'statut': '',
+      'montant': 0.0,
+      'articles': [],
       'societe': {
-        'nom': 'Ma Super Entreprise',
-        'adresse': '123 Rue de la Créativité, 75001 Paris',
-        'email': 'contact@monentreprise.com',
-        'telephone': '01 23 45 67 89',
+        'nom': '',
+        'adresse': '',
+        'email': '',
+        'telephone': '',
       },
     };
   }

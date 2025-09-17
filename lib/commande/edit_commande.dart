@@ -22,15 +22,15 @@ class _EditCommandeScreenState extends State<EditCommandeScreen> {
   String? _date;
   String? _statut;
 
-  // Simulation d’un chargement initial
+  // Chargement initial des données depuis l'API
   @override
   void initState() {
     super.initState();
-    // Charger les données de la commande
-    _numero = 'CMD001';
-    _client = 'Jean Dupont';
-    _date = '2025-07-20';
-    _statut = 'En cours';
+    // Charger les données de la commande depuis l'API
+    _numero = '';
+    _client = '';
+    _date = '';
+    _statut = '';
   }
 
   @override

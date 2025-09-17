@@ -22,39 +22,8 @@ class _CommandesScreenState extends State<CommandesScreen>
   String selectedFilter = 'Tous';
   String searchQuery = '';
 
-  // Mock data for the list of orders
-  final List<Map<String, String>> commandes = const [
-    {
-      'numero': 'CMD001',
-      'client': 'Jean Dupont',
-      'date': '2025-07-20',
-      'statut': 'En cours',
-    },
-    {
-      'numero': 'CMD002',
-      'client': 'Marie Curie',
-      'date': '2025-07-22',
-      'statut': 'Livrée',
-    },
-    {
-      'numero': 'CMD003',
-      'client': 'Paul Martin',
-      'date': '2025-07-25',
-      'statut': 'Annulée',
-    },
-    {
-      'numero': 'CMD004',
-      'client': 'Lucie Bernard',
-      'date': '2025-07-28',
-      'statut': 'En cours',
-    },
-    {
-      'numero': 'CMD005',
-      'client': 'Pierre Dubois',
-      'date': '2025-07-30',
-      'statut': 'Livrée',
-    },
-  ];
+  // Liste vide par défaut - données récupérées depuis l'API
+  final List<Map<String, String>> commandes = [];
 
   @override
   void initState() {

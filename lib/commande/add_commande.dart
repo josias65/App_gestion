@@ -45,54 +45,11 @@ class _AddCommandeScreenState extends State<AddCommandeScreen> {
     'PayPal',
   ];
 
-  // Liste de clients pour la démo
-  final List<Map<String, dynamic>> _clients = [
-    {
-      'id': 1,
-      'nom': 'Entreprise ABC',
-      'email': 'contact@abc.com',
-      'telephone': '+225 0123456789',
-    },
-    {
-      'id': 2,
-      'nom': 'Société XYZ',
-      'email': 'info@xyz.com',
-      'telephone': '+225 0987654321',
-    },
-    {
-      'id': 3,
-      'nom': 'Compagnie DEF',
-      'email': 'hello@def.com',
-      'telephone': '+225 0555666777',
-    },
-    {
-      'id': 4,
-      'nom': 'Groupe GHI',
-      'email': 'contact@ghi.com',
-      'telephone': '+225 0333444555',
-    },
-    {
-      'id': 5,
-      'nom': 'Corporation JKL',
-      'email': 'info@jkl.com',
-      'telephone': '+225 0777888999',
-    },
-  ];
+  // Liste de clients (vide par défaut)
+  final List<Map<String, dynamic>> _clients = [];
 
-  // Liste d'articles pour la démo
-  final List<Map<String, dynamic>> _articlesDisponibles = [
-    {
-      'id': 1,
-      'designation': 'Ordinateur Portable HP',
-      'prix': 350000,
-      'stock': 8,
-    },
-    {'id': 2, 'designation': 'Imprimante Canon', 'prix': 150000, 'stock': 3},
-    {'id': 3, 'designation': 'Routeur TP-Link', 'prix': 55000, 'stock': 10},
-    {'id': 4, 'designation': 'Clavier mécanique', 'prix': 45000, 'stock': 1},
-    {'id': 5, 'designation': 'Souris sans fil', 'prix': 25000, 'stock': 15},
-    {'id': 6, 'designation': 'Écran 24 pouces', 'prix': 120000, 'stock': 5},
-  ];
+  // Liste d'articles (vide par défaut)
+  final List<Map<String, dynamic>> _articlesDisponibles = [];
 
   @override
   void initState() {

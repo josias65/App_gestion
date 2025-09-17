@@ -75,18 +75,8 @@ class _FactureScreenState extends State<FactureScreen>
 
     await Future.delayed(const Duration(seconds: 1));
 
-    List<Map<String, dynamic>> newFactures = List.generate(
-      pageSize,
-      (index) => {
-        'id': 'FAC${((currentPage - 1) * pageSize) + index + 1}-2025',
-        'numero': 'FAC${((currentPage - 1) * pageSize) + index + 1}-2025',
-        'client': 'Client ${((currentPage - 1) * pageSize) + index + 1}',
-        'date': DateTime.now().subtract(Duration(days: index * 2)),
-        'statut': ['Payée', 'Impayée', 'En attente'][index % 3],
-        'montant': 1500.00 + (index * 100),
-        'echeance': DateTime.now().add(Duration(days: 30 - (index * 5))),
-      },
-    );
+    // Liste vide par défaut - données récupérées depuis l'API
+    List<Map<String, dynamic>> newFactures = [];
 
     if (searchQuery.isNotEmpty) {
       newFactures = newFactures

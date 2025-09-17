@@ -6,142 +6,18 @@ import 'package:http/http.dart' as http;
 class MockApiService {
   static const String baseUrl = 'https://66f7c5c8b5d85f31a3418d8e.mockapi.io/api/v1';
   
-  // Données mock pour les tests
-  static final List<Map<String, dynamic>> _mockUsers = [
-    {
-      'id': '1',
-      'email': 'admin@neo.com',
-      'name': 'Administrateur',
-      'role': 'admin',
-      'avatar': null,
-      'created_at': DateTime.now().toIso8601String(),
-    },
-    {
-      'id': '2',
-      'email': 'test@example.com',
-      'name': 'Utilisateur Test',
-      'role': 'user',
-      'avatar': null,
-      'created_at': DateTime.now().toIso8601String(),
-    },
-  ];
+  // Données vides par défaut
+  static final List<Map<String, dynamic>> _mockUsers = [];
 
-  static final List<Map<String, dynamic>> _mockClients = [
-    {
-      'id': '1',
-      'name': 'Jean Dupont',
-      'email': 'jean.dupont@email.com',
-      'phone': '+33 1 23 45 67 89',
-      'address': '123 Rue de la Paix',
-      'city': 'Paris',
-      'country': 'France',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-    {
-      'id': '2',
-      'name': 'Marie Martin',
-      'email': 'marie.martin@email.com',
-      'phone': '+33 1 98 76 54 32',
-      'address': '456 Avenue des Champs',
-      'city': 'Lyon',
-      'country': 'France',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-  ];
+  static final List<Map<String, dynamic>> _mockClients = [];
 
-  static final List<Map<String, dynamic>> _mockArticles = [
-    {
-      'id': '1',
-      'name': 'Ordinateur Portable',
-      'description': 'Laptop haute performance',
-      'price': 999.99,
-      'quantity': 10,
-      'unit': 'pièce',
-      'category': 'Informatique',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-    {
-      'id': '2',
-      'name': 'Smartphone',
-      'description': 'Téléphone intelligent',
-      'price': 599.99,
-      'quantity': 25,
-      'unit': 'pièce',
-      'category': 'Mobile',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-  ];
+  static final List<Map<String, dynamic>> _mockArticles = [];
 
-  static final List<Map<String, dynamic>> _mockCommandes = [
-    {
-      'id': '1',
-      'client_id': '1',
-      'reference': 'CMD-001',
-      'date': DateTime.now().toIso8601String(),
-      'status': 'En attente',
-      'total': 1599.98,
-      'notes': 'Commande urgente',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-    {
-      'id': '2',
-      'client_id': '2',
-      'reference': 'CMD-002',
-      'date': DateTime.now().toIso8601String(),
-      'status': 'Livrée',
-      'total': 899.99,
-      'notes': 'Livraison express',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-  ];
+  static final List<Map<String, dynamic>> _mockCommandes = [];
 
-  static final List<Map<String, dynamic>> _mockFactures = [
-    {
-      'id': '1',
-      'client_id': '1',
-      'reference': 'FAC-001',
-      'date': DateTime.now().toIso8601String(),
-      'status': 'Payée',
-      'total': 1599.98,
-      'paid': 1599.98,
-      'notes': 'Paiement par virement',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-    {
-      'id': '2',
-      'client_id': '2',
-      'reference': 'FAC-002',
-      'date': DateTime.now().toIso8601String(),
-      'status': 'En attente',
-      'total': 899.99,
-      'paid': 0.0,
-      'notes': 'Paiement à réception',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-  ];
+  static final List<Map<String, dynamic>> _mockFactures = [];
 
-  static final List<Map<String, dynamic>> _mockDevis = [
-    {
-      'id': '1',
-      'client_id': '1',
-      'reference': 'DEV-001',
-      'date': DateTime.now().toIso8601String(),
-      'status': 'Accepté',
-      'total': 1599.98,
-      'notes': 'Devis accepté par le client',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-    {
-      'id': '2',
-      'client_id': '2',
-      'reference': 'DEV-002',
-      'date': DateTime.now().toIso8601String(),
-      'status': 'En attente',
-      'total': 899.99,
-      'notes': 'En attente de validation',
-      'created_at': DateTime.now().toIso8601String(),
-    },
-  ];
+  static final List<Map<String, dynamic>> _mockDevis = [];
 
   // Simuler un délai réseau
   static Future<void> _simulateNetworkDelay() async {

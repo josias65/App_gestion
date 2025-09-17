@@ -35,22 +35,15 @@ class _EditFactureScreenState extends State<EditFactureScreen> {
     _loadFactureData();
   }
 
-  // A mock function to simulate fetching invoice data from a database.
+  // Charger les données de la facture depuis l'API
   void _loadFactureData() {
-    // In a real app, you would make an API call here using widget.factureId
-    final mockFacture = {
-      'numero': 'FAC001-2025',
-      'client': 'jean konami',
-      'date': '2025-07-21',
-      'statut': 'Payée',
-      'montant': '1500.00',
-    };
-
-    _numeroController.text = mockFacture['numero']!;
-    _clientController.text = mockFacture['client']!;
-    _dateController.text = mockFacture['date']!;
-    _montantController.text = mockFacture['montant']!;
-    _statut = mockFacture['statut']!;
+    // Dans une vraie app, vous feriez un appel API ici avec widget.factureId
+    // Pour l'instant, on laisse les champs vides
+    _numeroController.text = '';
+    _clientController.text = '';
+    _dateController.text = '';
+    _montantController.text = '';
+    _statut = null;
   }
 
   // A function to handle the date picker dialog.

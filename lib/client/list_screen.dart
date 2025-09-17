@@ -11,22 +11,8 @@ class ClientListScreen extends StatefulWidget {
 
 class _ClientListScreenState extends State<ClientListScreen>
     with TickerProviderStateMixin {
-  // A dummy list of clients to display. In a real app, this would come from a database.
-  List<Map<String, dynamic>> clients = [
-    {'nom': 'Jean KOLOMUANI', 'entreprise': 'BOURI SARL', 'statut': 'Actif'},
-    {
-      'nom': 'Malick MOSALITO',
-      'entreprise': 'Motologui Industrie',
-      'statut': 'Inactif',
-    },
-    {'nom': 'Adama TRAORE', 'entreprise': 'Global Tech', 'statut': 'Actif'},
-    {
-      'nom': 'Sophie SAMA',
-      'entreprise': 'Innov Solutions',
-      'statut': 'Inactif',
-    },
-    {'nom': 'Pierre MOUSSA', 'entreprise': 'Logistics Pro', 'statut': 'Actif'},
-  ];
+  // Liste vide par défaut - données récupérées depuis l'API
+  List<Map<String, dynamic>> clients = [];
 
   // State variables for search and filter functionality.
   String search = '';
