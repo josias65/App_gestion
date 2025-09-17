@@ -5,7 +5,11 @@ import 'package:intl/intl.dart';
 class EditFactureScreen extends StatefulWidget {
   final String factureId;
 
-  const EditFactureScreen({super.key, required this.factureId});
+  const EditFactureScreen({
+    super.key,
+    required this.factureId,
+    required Map<String, dynamic> factureToEdit,
+  });
 
   @override
   State<EditFactureScreen> createState() => _EditFactureScreenState();

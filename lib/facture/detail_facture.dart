@@ -9,7 +9,11 @@ import 'package:share_plus/share_plus.dart';
 class DetailFactureScreen extends StatefulWidget {
   final String factureId;
 
-  const DetailFactureScreen({super.key, required this.factureId});
+  const DetailFactureScreen({
+    super.key,
+    required this.factureId,
+    required Map<String, dynamic> facture,
+  });
 
   @override
   State<DetailFactureScreen> createState() => _DetailFactureScreenState();

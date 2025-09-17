@@ -65,20 +65,21 @@ import 'routes/app_routes.dart';
 
 import 'login/test_backend_screen.dart';
 import 'screens/service_test_screen.dart';
+import 'login/test_appel_offre_screen.dart';
 
 Future<void> main() async {
   // Assure que le binding Flutter est initialisé
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Configuration de l'orientation de l'écran
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   // Initialisation des services
   await _initializeServices();
-  
+
   // Démarrer l'application
   runApp(const MyApp());
 }
@@ -88,27 +89,26 @@ Future<void> _initializeServices() async {
   try {
     // Initialiser SharedPreferences
     await SharedPreferences.getInstance();
-    
+
     // Initialiser Hive
     await Hive.initFlutter();
-    
+
     // Initialiser le service de base de données
     await DatabaseService.initialize();
-    
+
     // Initialiser le client API
     final apiClient = ApiClient.instance;
     apiClient.initialize();
-    
+
     // Vérifier si on est en mode développement
     final bool isDev = AppConfig.isDevelopment;
     final bool useMock = ApiConfig.useMockData;
-    
+
     if (kDebugMode) {
       print('Mode développement: $isDev');
       print('Mode mock activé: $useMock');
       print('URL de base de l\'API: ${ApiConfig.baseUrlForEnvironment}');
     }
-    
   } catch (e) {
     if (kDebugMode) {
       print('Erreur lors de l\'initialisation des services: $e');
@@ -120,21 +120,21 @@ Future<void> _initializeServices() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  get args => null;
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         // Fournisseur d'authentification
-        ChangeNotifierProvider(
-          create: (context) => AuthProvider(),
-        ),
-        
+        ChangeNotifierProvider(create: (context) => AuthProvider()),
+
         // Fournisseur du client API
         Provider<ApiClient>(
           create: (context) => ApiClient.instance,
           dispose: (_, client) => client.dispose(),
         ),
-        
+
         // Fournisseur du service de base de données
         Provider<DatabaseService>(
           create: (context) => DatabaseService.instance,
@@ -175,7 +175,8 @@ class MyApp extends StatelessWidget {
           AppRoutes.devis: (context) => const DevisListScreen(),
           AppRoutes.createDevis: (context) => const CreateDevisScreen(),
           AppRoutes.marcheList: (context) => const MarcheListScreen(),
-          AppRoutes.marcheHistorique: (context) => const HistoriqueMarchesScreen(),
+          AppRoutes.marcheHistorique: (context) =>
+              const HistoriqueMarchesScreen(),
           AppRoutes.stock: (context) => const StockListScreen(),
           AppRoutes.relances: (context) => const RelancesScreen(),
           AppRoutes.recouvrements: (context) => const RecouvrementsScreen(),
@@ -200,7 +201,7 @@ class MyApp extends StatelessWidget {
               return MaterialPageRoute(
                 builder: (_) => const AddAppelOffreScreen(),
               );
-              
+
             // --- Marché ---
             case AppRoutes.marcheDetail:
               final args = settings.arguments as Map<String, dynamic>?;
@@ -219,11 +220,16 @@ class MyApp extends StatelessWidget {
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
                 return MaterialPageRoute(
-                  builder: (_) => SoumissionScreen(marche: args),
+                  builder: (_) => SoumissionScreen(
+                    marche: args,
+                    appelId: '',
+                    marcheId: '',
+                    appel: const {},
+                  ),
                 );
               }
               break;
-              
+
             // --- Stock ---
             case AppRoutes.stockDetail:
               final args = settings.arguments as Map<String, dynamic>?;
@@ -246,7 +252,7 @@ class MyApp extends StatelessWidget {
                 );
               }
               break;
-              
+
             // --- Client ---
             case AppRoutes.clientDetail:
               final args = settings.arguments as Map<String, dynamic>?;
@@ -256,7 +262,7 @@ class MyApp extends StatelessWidget {
                 );
               }
               break;
-              
+
             // --- Devis ---
             case AppRoutes.devisDetail:
               final arg = settings.arguments;
@@ -270,23 +276,29 @@ class MyApp extends StatelessWidget {
                   date: arg['date'] ?? '',
                   status: arg['status'] ?? '',
                   total: (arg['total'] is num) ? arg['total'].toDouble() : 0.0,
-                  articles: (arg['articles'] as List<dynamic>?)
-                      ?.cast<Map<String, dynamic>>() ?? [],
+                  articles:
+                      (arg['articles'] as List<dynamic>?)
+                          ?.cast<Map<String, dynamic>>() ??
+                      [],
                 );
               }
               if (devis != null) {
                 return MaterialPageRoute(
-                  builder: (_) => DevisDetailScreen(devis: devis),
+                  builder: (_) =>
+                      DevisDetailScreen(devis: args, devisId: args['id'] ?? ''),
                 );
               }
               break;
-              
+
             // --- Commande ---
             case AppRoutes.detailCommande:
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
                 return MaterialPageRoute(
-                  builder: (_) => DetailCommandeScreen(commande: args),
+                  builder: (_) => DetailCommandeScreen(
+                    commande: args,
+                    commandeId: args['id'] ?? '',
+                  ),
                 );
               }
               break;
@@ -294,17 +306,21 @@ class MyApp extends StatelessWidget {
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
                 return MaterialPageRoute<Map<String, dynamic>>(
-                  builder: (_) => EditCommandeScreen(commandeToEdit: args),
+                  builder: (_) => EditCommandeScreen(
+                    commandeToEdit: args,
+                    commandeId: args['id'] ?? '',
+                  ),
                 );
               }
               break;
-              
+
             // --- Facture ---
             case AppRoutes.detailFacture:
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
                 return MaterialPageRoute(
-                  builder: (_) => DetailFactureScreen(facture: args),
+                  builder: (_) =>
+                      DetailFactureScreen(facture: args, factureId: ''),
                 );
               }
               break;
@@ -312,11 +328,14 @@ class MyApp extends StatelessWidget {
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
                 return MaterialPageRoute<Map<String, dynamic>>(
-                  builder: (_) => EditFactureScreen(factureToEdit: args),
+                  builder: (_) => EditFactureScreen(
+                    factureToEdit: args,
+                    factureId: args['id'] ?? '',
+                  ),
                 );
               }
               break;
-              
+
             // --- Relance ---
             case AppRoutes.detailRelance:
               final args = settings.arguments as Map<String, dynamic>?;
@@ -334,11 +353,12 @@ class MyApp extends StatelessWidget {
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
                 return MaterialPageRoute<Map<String, dynamic>>(
-                  builder: (_) => EditRelanceScreen(relanceToEdit: args),
+                  builder: (_) =>
+                      EditRelanceScreen(relanceToEdit: args, relance: {}),
                 );
               }
               break;
-              
+
             // --- Recouvrement ---
             case AppRoutes.detailRecouvrement:
               final args = settings.arguments as Map<String, dynamic>?;
@@ -352,28 +372,35 @@ class MyApp extends StatelessWidget {
               final args = settings.arguments as Map<String, dynamic>?;
               if (args != null) {
                 return MaterialPageRoute<Map<String, dynamic>>(
-                  builder: (_) => EditRecouvrementScreen(recouvrementToEdit: args),
+                  builder: (_) => EditRecouvrementScreen(
+                    recouvrementToEdit: args,
+                    recouvrement: {},
+                  ),
                 );
               }
               break;
-              
+
             // --- Test Backend ---
             case AppRoutes.testBackend:
               return MaterialPageRoute(
                 builder: (_) => const TestBackendScreen(),
               );
-              
+
             // --- Test Database ---
             case AppRoutes.testDatabase:
               return MaterialPageRoute(
                 builder: (_) => const ServiceTestScreen(),
               );
+
+            // --- Test Appels d'Offre ---
+            case AppRoutes.testAppelOffre:
+              return MaterialPageRoute(
+                builder: (_) => const TestAppelOffreScreen(),
+              );
           }
-          
+
           // Route par défaut
-          return MaterialPageRoute(
-            builder: (_) => const LoginScreen(),
-          );
+          return MaterialPageRoute(builder: (_) => const LoginScreen());
         },
       ),
     );

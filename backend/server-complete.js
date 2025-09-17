@@ -57,7 +57,7 @@ async function initServer() {
     app.use('/commande', require('./routes/orders'));
     app.use('/facture', require('./routes/invoices'));
     app.use('/article', require('./routes/products'));
-    app.use('/appels-offre', require('./routes/appels-offre'));
+    app.use('/appels-offre', require('./routes/appels-offre-enhanced'));
     app.use('/marches', require('./routes/marches'));
     app.use('/recouvrements', require('./routes/recouvrements'));
     app.use('/relances', require('./routes/relances'));

@@ -84,4 +84,7 @@ class AppRoutes {
   
   // Test Database
   static const String testDatabase = '/test-database';
+  
+  // Test Appels d'Offre
+  static const String testAppelOffre = '/test-appel-offre';
 }

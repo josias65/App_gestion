@@ -10,7 +10,7 @@ import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
-  
+
   bool _isLoading = false;
   bool _isInitialized = false;
   User? _user;
@@ -79,24 +79,18 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final result = await _authService.login(email, password);
-      
+
       if (result.success) {
         _error = '';
         return result;
       } else {
         final errorMessage = result.message;
         _error = errorMessage ?? 'Échec de la connexion';
-        return AuthResult(
-          success: false,
-          message: _error,
-        );
+        return AuthResult(success: false, message: _error);
       }
     } catch (e) {
       _error = 'Erreur lors de la connexion: $e';
-      return AuthResult(
-        success: false,
-        message: _error,
-      );
+      return AuthResult(success: false, message: _error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -104,30 +98,28 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Inscription
-  Future<AuthResult> register(String name, String email, String password) async {
+  Future<AuthResult> register(
+    String name,
+    String email,
+    String password,
+  ) async {
     _isLoading = true;
     _error = '';
     notifyListeners();
 
     try {
       final result = await _authService.register(name, email, password);
-      
+
       if (result.success) {
         _error = '';
         return result;
       } else {
         _error = result.message ?? 'Erreur inconnue lors de l\'inscription';
-        return AuthResult(
-          success: false,
-          message: _error,
-        );
+        return AuthResult(success: false, message: _error);
       }
     } catch (e) {
       _error = 'Erreur lors de l\'inscription: $e';
-      return AuthResult(
-        success: false,
-        message: _error,
-      );
+      return AuthResult(success: false, message: _error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -138,7 +130,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       await _authService.logout();
       _error = '';
@@ -155,7 +147,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> forceLogout() async {
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       await _authService.forceLogout();
       _error = '';
@@ -184,7 +176,7 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = true;
       _error = '';
       notifyListeners();
-      _user = await _authService.getUser();
+      _user = (await _authService.getUser()) as User?;
       notifyListeners();
     } catch (e) {
       _error = 'Erreur lors du rafraîchissement des données utilisateur: $e';
@@ -202,14 +194,14 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   // Vérifier si l'utilisateur a un rôle spécifique
   bool hasRole(String role) {
     final userRole = _user?.role;
     if (userRole == null || userRole.isEmpty) return false;
     return userRole.toLowerCase() == role.toLowerCase();
   }
-  
+
   // Vérifier si l'utilisateur a l'un des rôles spécifiés
   bool hasAnyRole(List<String> roles) {
     final userRole = _user?.role;

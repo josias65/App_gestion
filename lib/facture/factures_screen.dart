@@ -417,8 +417,10 @@ class _FactureScreenState extends State<FactureScreen>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              DetailFactureScreen(factureId: facture['id']),
+                          builder: (context) => DetailFactureScreen(
+                            factureId: facture['id'],
+                            facture: {},
+                          ),
                         ),
                       );
                     },
@@ -551,6 +553,7 @@ class _FactureScreenState extends State<FactureScreen>
                                       MaterialPageRoute(
                                         builder: (context) => EditFactureScreen(
                                           factureId: facture['id'],
+                                          factureToEdit: {},
                                         ),
                                       ),
                                     );
@@ -578,6 +581,7 @@ class _FactureScreenState extends State<FactureScreen>
                                         builder: (context) =>
                                             DetailFactureScreen(
                                               factureId: facture['id'],
+                                              facture: {},
                                             ),
                                       ),
                                     );

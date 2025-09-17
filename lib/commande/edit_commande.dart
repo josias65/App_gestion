@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 class EditCommandeScreen extends StatefulWidget {
   final String commandeId;
 
-  const EditCommandeScreen({super.key, required this.commandeId});
+  const EditCommandeScreen({
+    super.key,
+    required this.commandeId,
+    required Map<String, dynamic> commandeToEdit,
+  });
 
   @override
   State<EditCommandeScreen> createState() => _EditCommandeScreenState();

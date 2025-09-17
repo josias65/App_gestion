@@ -14,6 +14,7 @@ class SoumissionScreen extends StatefulWidget {
     required this.appelId,
     required this.marcheId,
     required this.appel,
+    required Map<String, dynamic> marche,
   });
 
   @override

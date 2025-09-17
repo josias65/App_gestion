@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 class EditRecouvrementScreen extends StatefulWidget {
   final Map<String, dynamic> recouvrement;
 
-  const EditRecouvrementScreen({super.key, required this.recouvrement});
+  const EditRecouvrementScreen({
+    super.key,
+    required this.recouvrement,
+    required Map<String, dynamic> recouvrementToEdit,
+  });
 
   @override
   State<EditRecouvrementScreen> createState() => _EditRecouvrementScreenState();

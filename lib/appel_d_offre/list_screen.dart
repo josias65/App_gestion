@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../routes/app_routes.dart';
+import '../services/appel_offre_service.dart';
+import '../widgets/appel_offre_widgets.dart';
 
 class AppelsOffresScreen extends StatefulWidget {
   const AppelsOffresScreen({super.key});
@@ -28,54 +30,9 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
     'Terminé',
   ];
 
-  final List<Map<String, dynamic>> _appelsOffres = [
-    {
-      'id': 1,
-      'titre': 'Acquisition de serveurs haute performance',
-      'description':
-          'Achat et installation de serveurs pour infrastructure informatique',
-      'date': '21/07/2025',
-      'etat': 'Ouvert',
-      'budget': '5 000 000 FCFA',
-      'categorie': 'Informatique',
-      'soumissions': 12,
-      'favori': false,
-      'urgence': 'Haute',
-      'localisation': 'Abidjan',
-      'dateLimite': '30/08/2025',
-      'documents': ['Cahier des charges', 'Spécifications techniques', 'Devis'],
-    },
-    {
-      'id': 2,
-      'titre': 'Déploiement d\'un réseau sécurisé pour datacenter',
-      'description': 'Installation et configuration d\'un réseau sécurisé',
-      'date': '18/07/2025',
-      'etat': 'Clôturé',
-      'budget': '3 500 000 FCFA',
-      'categorie': 'Réseau',
-      'soumissions': 8,
-      'favori': true,
-      'urgence': 'Moyenne',
-      'localisation': 'Yamoussoukro',
-      'dateLimite': '25/08/2025',
-      'documents': ['Plan réseau', 'Sécurité', 'Maintenance'],
-    },
-    {
-      'id': 3,
-      'titre': 'Fourniture de matériel de bureau',
-      'description': 'Achat de mobilier et équipements de bureau',
-      'date': '25/07/2025',
-      'etat': 'Ouvert',
-      'budget': '2 000 000 FCFA',
-      'categorie': 'Mobilier',
-      'soumissions': 5,
-      'favori': false,
-      'urgence': 'Basse',
-      'localisation': 'Bouaké',
-      'dateLimite': '15/09/2025',
-      'documents': ['Catalogue mobilier', 'Spécifications', 'Installation'],
-    },
-  ];
+  final AppelOffreService _service = AppelOffreService();
+  List<Map<String, dynamic>> _appelsOffres = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -103,6 +60,35 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
     Future.delayed(const Duration(milliseconds: 600), () {
       _fabController.forward();
     });
+
+    _loadAppelsOffre();
+  }
+
+  Future<void> _loadAppelsOffre() async {
+    try {
+      final response = await _service.getAppelsOffre(limit: 50);
+      if (response['success']) {
+        setState(() {
+          _appelsOffres = List<Map<String, dynamic>>.from(response['data'] ?? []);
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+        _showError('Erreur lors du chargement: ${response['message']}');
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showError('Erreur de connexion: $e');
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
@@ -185,13 +171,33 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
     );
   }
 
-  void _toggleFavorite(int id) {
+  void _toggleFavorite(Map<String, dynamic> appel) {
     setState(() {
-      final index = _appelsOffres.indexWhere((appel) => appel['id'] == id);
+      final index = _appelsOffres.indexWhere((a) => a['id'] == appel['id']);
       if (index != -1) {
-        _appelsOffres[index]['favori'] = !_appelsOffres[index]['favori'];
+        _appelsOffres[index]['favorite'] = !(_appelsOffres[index]['favorite'] ?? false);
       }
     });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _appelsOffres.firstWhere((a) => a['id'] == appel['id'], orElse: () => {'favorite': false})['favorite'] == true
+              ? 'Ajouté aux favoris'
+              : 'Retiré des favoris'
+        ),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _shareAppelOffre(Map<String, dynamic> appel) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Partage de l\'appel d\'offre: ${appel['title'] ?? appel['titre']}'),
+        backgroundColor: Colors.blue,
+      ),
+    );
   }
 
   Color _getEtatColor(String etat) {
@@ -338,7 +344,9 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
             ),
             // Liste des appels d'offres
             Expanded(
-              child: _filteredAppels.isEmpty
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredAppels.isEmpty
                   ? const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -361,223 +369,17 @@ class _AppelsOffresScreenState extends State<AppelsOffresScreen>
                       itemCount: _filteredAppels.length,
                       itemBuilder: (context, index) {
                         final appel = _filteredAppels[index];
-                        return Card(
-                          elevation: 4,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.pushNamed(
+                            return AppelOffreCard(
+                              appelOffre: appel,
+                              onTap: () => Navigator.pushNamed(
                                 context,
                                 AppRoutes.detailAppelOffre,
                                 arguments: appel,
-                              );
-                            },
-                            borderRadius: BorderRadius.circular(12),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: _getEtatColor(
-                                            appel['etat'],
-                                          ).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.assignment,
-                                          color: _getEtatColor(appel['etat']),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              appel['titre'],
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              appel['categorie'],
-                                              style: TextStyle(
-                                                color: Colors.grey[600],
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      PopupMenuButton<String>(
-                                        onSelected: (value) {
-                                          switch (value) {
-                                            case 'detail':
-                                              Navigator.pushNamed(
-                                                context,
-                                                AppRoutes.detailAppelOffre,
-                                                arguments: appel,
-                                              );
-                                              break;
-                                            case 'edit':
-                                              _modifierAppelOffre(appel);
-                                              break;
-                                            case 'delete':
-                                              _supprimerAppelOffre(appel['id']);
-                                              break;
-                                            case 'favorite':
-                                              _toggleFavorite(appel['id']);
-                                              break;
-                                          }
-                                        },
-                                        itemBuilder: (context) => [
-                                          const PopupMenuItem(
-                                            value: 'detail',
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.visibility),
-                                                SizedBox(width: 8),
-                                                Text('Voir détails'),
-                                              ],
-                                            ),
-                                          ),
-                                          const PopupMenuItem(
-                                            value: 'edit',
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.edit),
-                                                SizedBox(width: 8),
-                                                Text('Modifier'),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 'favorite',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  appel['favori']
-                                                      ? Icons.favorite
-                                                      : Icons.favorite_border,
-                                                  color: appel['favori']
-                                                      ? Colors.red
-                                                      : null,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  appel['favori']
-                                                      ? 'Retirer des favoris'
-                                                      : 'Ajouter aux favoris',
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const PopupMenuItem(
-                                            value: 'delete',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.delete,
-                                                  color: Colors.red,
-                                                ),
-                                                SizedBox(width: 8),
-                                                Text(
-                                                  'Supprimer',
-                                                  style: TextStyle(
-                                                    color: Colors.red,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                        child: const Icon(Icons.more_vert),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Chip(
-                                        label: Text(
-                                          appel['etat'],
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        backgroundColor: _getEtatColor(
-                                          appel['etat'],
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        appel['budget'],
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Color(0xFF0F0465),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    appel['description'],
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.calendar_today,
-                                        size: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Date limite: ${appel['dateLimite']}',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Icon(
-                                        Icons.location_on,
-                                        size: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        appel['localisation'],
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
                               ),
-                            ),
-                          ),
+                              onEdit: () => _modifierAppelOffre(appel),
+                              onDelete: () => _supprimerAppelOffre(appel['id']),
+                              onFavorite: () => _toggleFavorite(appel),
+                              onShare: () => _shareAppelOffre(appel),
                         );
                       },
                     ),

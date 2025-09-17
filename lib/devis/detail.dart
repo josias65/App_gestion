@@ -4,7 +4,7 @@ import '../../models/devis_model.dart';
 class DevisDetailScreen extends StatelessWidget {
   final DevisModel devis;
 
-  const DevisDetailScreen({super.key, required this.devis});
+  const DevisDetailScreen({super.key, required this.devis, required devisId});
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {

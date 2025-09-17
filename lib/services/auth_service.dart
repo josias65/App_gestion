@@ -21,7 +21,7 @@ class AuthService {
   final String registerEndpoint = ApiConfig.registerEndpoint;
   final String refreshEndpoint = ApiConfig.refreshEndpoint;
   final String logoutEndpoint = ApiConfig.logoutEndpoint;
-  
+
   // Utiliser l'API mock en mode développement
   // La configuration du mode mock est gérée par AppConfig.useMockData
 
@@ -29,7 +29,7 @@ class AuthService {
   static const String tokenKey = 'auth_token';
   static const String refreshTokenKey = 'refresh_token';
   static const String userKey = 'user_data';
-  
+
   // Contrôleurs pour les streams
   final _authStateController = StreamController<User?>.broadcast();
   final _isLoadingController = StreamController<bool>.broadcast();
@@ -47,9 +47,10 @@ class AuthService {
   // Configuration
   static const Duration tokenRefreshThreshold = Duration(minutes: 5);
   static const Duration tokenExpiration = Duration(hours: 1);
-  
+
   // Headers pour les requêtes API
-  Map<String, String> get _headers => Map<String, String>.from(ApiConfig.defaultHeaders);
+  Map<String, String> get _headers =>
+      Map<String, String>.from(ApiConfig.defaultHeaders);
 
   // Headers pour les requêtes authentifiées
   Future<Map<String, String>> get _authHeaders async {
@@ -64,7 +65,7 @@ class AuthService {
   AuthService() {
     _init();
   }
-  
+
   // Initialisation
   Future<void> _init() async {
     await _loadAuthFromPrefs();
@@ -86,15 +87,20 @@ class AuthService {
         _authStateController.add(_currentUser);
       }
     } catch (e) {
-      developer.log('Erreur lors du chargement de l\'authentification: $e',
-          name: 'AuthService');
+      developer.log(
+        'Erreur lors du chargement de l\'authentification: $e',
+        name: 'AuthService',
+      );
       await _clearAuthData();
     }
   }
 
   // Sauvegarder l'état d'authentification dans les préférences
   Future<void> _saveAuthData(
-      String token, String? refreshToken, User user) async {
+    String token,
+    String? refreshToken,
+    User user,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(tokenKey, token);
@@ -108,8 +114,10 @@ class AuthService {
       _currentUser = user;
       _authStateController.add(user);
     } catch (e) {
-      developer.log('Erreur lors de la sauvegarde de l\'authentification: $e',
-          name: 'AuthService');
+      developer.log(
+        'Erreur lors de la sauvegarde de l\'authentification: $e',
+        name: 'AuthService',
+      );
       rethrow;
     }
   }
@@ -128,8 +136,9 @@ class AuthService {
       _authStateController.add(null);
     } catch (e) {
       developer.log(
-          'Erreur lors de la suppression des données d\'authentification: $e',
-          name: 'AuthService');
+        'Erreur lors de la suppression des données d\'authentification: $e',
+        name: 'AuthService',
+      );
       rethrow;
     }
   }
@@ -162,22 +171,24 @@ class AuthService {
         final data = jsonDecode(response.body);
         final token = data['token'];
         final refreshToken = data['refresh_token'] ?? _refreshToken;
-        
+
         if (token != null) {
           await _saveAuthData(token, refreshToken, _currentUser!);
           return true;
         }
       }
     } catch (e) {
-      developer.log('Erreur lors du rafraîchissement du token: $e',
-          name: 'AuthService');
+      developer.log(
+        'Erreur lors du rafraîchissement du token: $e',
+        name: 'AuthService',
+      );
     }
-    
+
     // En cas d'échec, déconnecter l'utilisateur
     await logout();
     return false;
   }
-  
+
   // Vérifie la connectivité réseau de manière simplifiée
   Future<bool> _checkConnectivity() async {
     try {
@@ -187,11 +198,11 @@ class AuthService {
       return false;
     }
   }
-  
+
   // Méthode de connexion de test pour le développement
   Future<AuthResult> _testLogin(String email, String password) async {
     await Future.delayed(const Duration(seconds: 1)); // Simuler un délai réseau
-    
+
     // Vérifier les identifiants de test
     if ((email == 'test@example.com' && password == 'password123') ||
         (email == 'admin@neo.com' && password == 'admin123')) {
@@ -203,18 +214,18 @@ class AuthService {
         createdAt: DateTime.now(),
         avatar: null,
       );
-      
+
       // Simuler un token JWT
       final token = 'test_token_${DateTime.now().millisecondsSinceEpoch}';
-      
+
       // Sauvegarder les données de l'utilisateur
       _currentUser = user;
       _currentToken = token;
       _refreshToken = 'test_refresh_token';
-      
+
       // Notifier les écouteurs
       _authStateController.add(user);
-      
+
       return AuthResult(
         success: true,
         message: 'Connexion réussie (mode test)',
@@ -222,7 +233,7 @@ class AuthService {
         token: token,
       );
     }
-    
+
     return const AuthResult(
       success: false,
       message: 'Identifiants incorrects (mode test)',
@@ -233,8 +244,9 @@ class AuthService {
   Future<AuthResult> login(String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
       return const AuthResult(
-          success: false, 
-          message: 'Veuillez remplir tous les champs');
+        success: false,
+        message: 'Veuillez remplir tous les champs',
+      );
     }
 
     _isLoadingController.add(true);
@@ -249,27 +261,27 @@ class AuthService {
       if (!await _checkConnectivity()) {
         return const AuthResult(
           success: false,
-          message: 'Pas de connexion Internet. Vérifiez votre connexion et réessayez.'
+          message:
+              'Pas de connexion Internet. Vérifiez votre connexion et réessayez.',
         );
       }
 
-      final response = await http.post(
-        Uri.parse('$baseUrl$loginEndpoint'),
-        headers: _headers,
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => http.Response(
-          jsonEncode({
-            'success': false,
-            'message': 'La connexion a expiré. Veuillez réessayer.'
-          }),
-          408, // Request Timeout
-        ),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl$loginEndpoint'),
+            headers: _headers,
+            body: jsonEncode({'email': email, 'password': password}),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => http.Response(
+              jsonEncode({
+                'success': false,
+                'message': 'La connexion a expiré. Veuillez réessayer.',
+              }),
+              408, // Request Timeout
+            ),
+          );
 
       // Vérifier si la réponse est valide
       if (response.body.isEmpty) {
@@ -280,37 +292,40 @@ class AuthService {
       }
 
       final responseData = jsonDecode(utf8.decode(response.bodyBytes));
-      
+
       if (response.statusCode == 200) {
-        if (responseData['token'] == null || responseData['token'].toString().isEmpty) {
+        if (responseData['token'] == null ||
+            responseData['token'].toString().isEmpty) {
           return const AuthResult(
-              success: false, 
-              message: 'Token manquant ou invalide dans la réponse du serveur');
+            success: false,
+            message: 'Token manquant ou invalide dans la réponse du serveur',
+          );
         }
 
         final token = responseData['token'] as String;
         final refreshToken = responseData['refresh_token'] as String?;
         final userData = responseData['user'] as Map<String, dynamic>?;
-        
+
         if (userData == null) {
           return const AuthResult(
-              success: false,
-              message: 'Données utilisateur manquantes dans la réponse');
+            success: false,
+            message: 'Données utilisateur manquantes dans la réponse',
+          );
         }
-        
+
         // Sauvegarder les tokens et les données utilisateur
         await _saveTokens(token, refreshToken ?? '');
         await _saveUser(userData);
-        
+
         // Mettre à jour l'état de l'utilisateur
         _currentUser = User.fromJson(userData);
         _currentToken = token;
         _refreshToken = refreshToken;
         _authStateController.add(_currentUser);
-        
+
         // Démarrer le timer de rafraîchissement du token
         _startTokenRefreshTimer();
-        
+
         return AuthResult(
           success: true,
           message: 'Connexion réussie',
@@ -331,16 +346,18 @@ class AuthService {
         message: 'La connexion a expiré. Veuillez réessayer.',
       );
     } catch (e) {
-      developer.log('Erreur lors de la connexion: $e', 
-          name: 'AuthService',
-          error: e,
-          stackTrace: StackTrace.current);
-      
+      developer.log(
+        'Erreur lors de la connexion: $e',
+        name: 'AuthService',
+        error: e,
+        stackTrace: StackTrace.current,
+      );
+
       // En cas d'erreur réseau, essayer le mode test si activé
       if (AppConfig.useMockData) {
         return _testLogin(email, password);
       }
-      
+
       return AuthResult(
         success: false,
         message: 'Une erreur est survenue. Veuillez réessayer plus tard.',
@@ -353,7 +370,7 @@ class AuthService {
   // Méthode de connexion avec support mock
   Future<AuthResult> _loginUser(String email, String password) async {
     _isLoadingController.add(true);
-    
+
     try {
       // Mode test avec des identifiants codés en dur
       if (email == 'admin@neo.com' && password == 'admin123') {
@@ -365,24 +382,24 @@ class AuthService {
           createdAt: DateTime.now(),
           avatar: null,
         );
-        
+
         await _saveTokens('admin_access_token', 'admin_refresh_token');
         await _saveUser(adminUser.toJson());
-        
+
         _currentUser = adminUser;
         _currentToken = 'admin_access_token';
         _refreshToken = 'admin_refresh_token';
-        
+
         _authStateController.add(adminUser);
         _startTokenRefreshTimer();
-        
+
         return AuthResult(
           success: true,
           user: adminUser,
           message: 'Connexion administrateur réussie',
         );
       }
-      
+
       return AuthResult.error('Email ou mot de passe incorrect');
     } finally {
       _isLoadingController.add(false);
@@ -482,8 +499,10 @@ class AuthService {
           try {
             await refreshToken();
           } catch (e) {
-            developer.log('Erreur lors du rafraîchissement automatique du token: $e',
-                name: 'AuthService');
+            developer.log(
+              'Erreur lors du rafraîchissement automatique du token: $e',
+              name: 'AuthService',
+            );
           }
         }
       },
@@ -607,6 +626,10 @@ class AuthService {
 
     return response;
   }
+
+  void dispose() {}
+
+  Future checkAuth() async {}
 }
 
 // Classe pour gérer les résultats d'authentification
@@ -616,7 +639,12 @@ class AuthResult {
   final User? user;
   final String? token;
 
-  const AuthResult({required this.success, this.message, this.user, this.token});
+  const AuthResult({
+    required this.success,
+    this.message,
+    this.user,
+    this.token,
+  });
 
   // Constructeur pour un succès
   factory AuthResult.success(User user, String token) {
